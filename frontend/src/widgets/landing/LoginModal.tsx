@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { postJson } from '@shared/api/http'
+import { supabase } from '@shared/api/supabaseClient'
 
 interface LoginModalProps {
   isOpen: boolean
@@ -13,6 +14,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onOpenR
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [oauthLoading, setOauthLoading] = useState<'github' | 'google' | null>(null)
 
   if (!isOpen) return null
 
@@ -31,6 +33,24 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onOpenR
     }
     onAuthSuccess(result.data.access_token, login.trim())
     onClose()
+  }
+
+  const handleOAuth = async (provider: 'github' | 'google') => {
+    setOauthLoading(provider)
+    setError(null)
+    try {
+      await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          scopes: provider === 'github' ? 'user:email' : provider === 'google' ? 'email profile' : undefined,
+          redirectTo: window.location.origin,
+        },
+      })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Не удалось запустить OAuth')
+    } finally {
+      setOauthLoading(null)
+    }
   }
 
   return (
@@ -98,6 +118,28 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onOpenR
             >
               Создать учетную запись
             </button>
+          </div>
+
+          <div className="mt-6">
+            <div className="text-xs uppercase tracking-wide text-gray-500 mb-3">Войти через</div>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => handleOAuth('github')}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition disabled:opacity-60"
+                disabled={!!oauthLoading}
+              >
+                {oauthLoading === 'github' ? 'Открываем GitHub...' : 'GitHub'}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleOAuth('google')}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition disabled:opacity-60"
+                disabled={!!oauthLoading}
+              >
+                {oauthLoading === 'google' ? 'Открываем Google...' : 'Gmail'}
+              </button>
+            </div>
           </div>
         </div>
       </div>

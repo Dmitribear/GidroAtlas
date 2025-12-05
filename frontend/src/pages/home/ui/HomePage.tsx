@@ -8,14 +8,37 @@ import { LoginModal } from '@widgets/landing/LoginModal'
 import { AmbientRays } from '@widgets/landing/AmbientRays'
 import { RegisterModal } from '@widgets/landing/RegisterModal'
 import { getJson } from '@shared/api/http'
+import { postJson } from '@shared/api/http'
+import { supabase } from '@shared/api/supabaseClient'
 
 export const HomePage = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [userLogin, setUserLogin] = useState<string | null>(null)
+  const [authError, setAuthError] = useState<string | null>(null)
 
   useEffect(() => {
+    const syncFromSupabase = async () => {
+      const { data } = await supabase.auth.getSession()
+      const session = data.session
+      if (!session?.user) return
+
+      const meta = session.user.user_metadata || {}
+      const provider = session.user.app_metadata?.provider
+      const emailPrefix = session.user.email?.split('@')[0]
+      const oauthLogin = (meta.user_name as string) || (meta.preferred_username as string) || emailPrefix || session.user.id
+      const syntheticPassword = `${provider}:${session.user.id}`
+
+      const token = await ensureBackendToken(oauthLogin, syntheticPassword)
+      if (token) {
+        setAccessToken(token)
+        setUserLogin(oauthLogin)
+        localStorage.setItem('access_token', token)
+        localStorage.setItem('user_login', oauthLogin)
+      }
+    }
+
     const stored = localStorage.getItem('access_token')
     const storedLogin = localStorage.getItem('user_login')
     if (stored) {
@@ -36,7 +59,22 @@ export const HomePage = () => {
         }
       })
     }
+    syncFromSupabase().catch(() => {})
   }, [])
+
+  const ensureBackendToken = async (login: string, password: string) => {
+    setAuthError(null)
+    const register = await postJson<{ access_token: string }>('/auth/register', { login, password })
+    if ('data' in register) return register.data.access_token
+    if (register.error && !register.error.toLowerCase().includes('exists') && !register.error.includes('409')) {
+      setAuthError(register.error)
+      return null
+    }
+    const loginRes = await postJson<{ access_token: string }>('/auth/login', { login, password })
+    if ('data' in loginRes) return loginRes.data.access_token
+    setAuthError(loginRes.error)
+    return null
+  }
 
   const handleAuthSuccess = (token: string, login: string) => {
     setAccessToken(token)
@@ -83,6 +121,13 @@ export const HomePage = () => {
         <main className="flex-grow flex flex-col">
           <Hero />
           <About />
+          {authError && (
+            <div className="max-w-5xl mx-auto px-6">
+              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                Ошибка авторизации: {authError}
+              </div>
+            </div>
+          )}
           <Contacts />
         </main>
       </div>
