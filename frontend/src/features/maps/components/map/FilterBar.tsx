@@ -14,15 +14,15 @@ const resourceTypes = [
 
 const waterTypes = [
   { value: 'fresh', label: 'Пресная вода' },
-  { value: 'saline', label: 'Непресная вода' },
+  { value: 'saline', label: 'Непресная / солёная вода' },
 ]
 
 const conditions = [
   { value: 1, label: '1 - Отличное', color: 'bg-emerald-500' },
   { value: 2, label: '2 - Хорошее', color: 'bg-lime-500' },
-  { value: 3, label: '3 - Среднее', color: 'bg-amber-400' },
-  { value: 4, label: '4 - Плохое', color: 'bg-orange-500' },
-  { value: 5, label: '5 - Критичное', color: 'bg-red-500' },
+  { value: 3, label: '3 - Удовлетворительное', color: 'bg-amber-400' },
+  { value: 4, label: '4 - Неудовлетворительное', color: 'bg-orange-500' },
+  { value: 5, label: '5 - Аварийное', color: 'bg-red-500' },
 ]
 
 interface FilterBarProps {
@@ -100,7 +100,7 @@ export function FilterBar({ filters, onFiltersChange, onShowCritical, normalizeR
         }`}
       >
         <AlertTriangle className="w-3.5 h-3.5" />
-        Критичные
+        Только критические
       </button>
 
       <div className="flex-1" />
@@ -252,7 +252,7 @@ function FilterDropdown({ label, value, options, onChange, showConditionColors }
             }}
             className="w-full px-3 py-2 text-left text-xs text-gray-500 hover:bg-gray-50 transition-colors"
           >
-            Любое
+            Сбросить
           </button>
           {options.map((opt) => (
             <button

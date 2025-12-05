@@ -10,8 +10,8 @@ interface NavbarProps {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Главная', href: '#work' },
-  { label: 'Сервисы', href: '#services' },
+  { label: 'Как это работает', href: '#work' },
+  { label: 'Возможности', href: '#services' },
   { label: 'Контакты', href: '#contact' },
 ]
 
@@ -32,9 +32,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogou
   }, [])
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 px-6 py-6 transition-all duration-300" style={navFontStyle}>
+    <nav className="fixed top-0 left-0 w-full z-50 px-4 py-3 transition-all duration-300" style={navFontStyle}>
       <div
-        className={`max-w-7xl mx-auto bg-white/80 backdrop-blur-md border border-slate-100 rounded-full px-6 py-4 flex justify-between items-center shadow-sm transition-all ${
+        className={`max-w-7xl mx-auto bg-white/85 backdrop-blur-md border border-slate-100 rounded-2xl px-5 py-3 flex justify-between items-center shadow-sm transition-all ${
           scrolled ? 'shadow-md' : ''
         }`}
       >
@@ -107,10 +107,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogou
             </div>
           )}
           <a
-            href="/maps" // dashboard
+            href="/maps"
             className="group relative px-6 py-2.5 bg-black text-white rounded-full text-sm font-medium overflow-hidden hover:scale-105 transition-transform"
           >
-            <span className="relative z-10">Перейти в панель управления</span>
+            <span className="relative z-10">Войти в панель управления</span>
             <div className="absolute inset-0 bg-fuchsia-500 transform scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-300 ease-out"></div>
           </a>
         </div>
@@ -161,7 +161,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogou
                   setMobileMenuOpen(false)
                 }}
               >
-                Profile
+                Профиль
               </button>
               <button
                 className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 text-sm font-medium text-slate-800 hover:bg-slate-50"
@@ -170,7 +170,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogou
                   setMobileMenuOpen(false)
                 }}
               >
-                Logout
+                Выйти
               </button>
             </div>
           )}

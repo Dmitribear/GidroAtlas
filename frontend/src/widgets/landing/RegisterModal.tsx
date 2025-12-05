@@ -20,9 +20,9 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, o
 
   const validationError = useMemo(() => {
     if (login.trim().length < 8) return 'Логин должен быть не короче 8 символов'
-    if (!loginRegex.test(login.trim())) return 'Логин — только латиница и цифры'
+    if (!loginRegex.test(login.trim())) return 'Логин может содержать только буквы и цифры'
     if (password.length < 6) return 'Пароль должен быть не короче 6 символов'
-    if (!passwordRegex.test(password)) return 'Пароль может содержать только латиницу'
+    if (!passwordRegex.test(password)) return 'Пароль может содержать только буквы и цифры'
     return null
   }, [login, password])
 
@@ -48,7 +48,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, o
       return
     }
 
-    setSuccess('Регистрация успешна')
+    setSuccess('Регистрация прошла успешно')
     onAuthSuccess(result.data.access_token, login.trim())
   }
 
@@ -58,7 +58,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, o
 
       <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md relative z-10 overflow-hidden animate-fade-in-up">
         <div className="bg-warm-50 px-8 py-6 border-b border-warm-100 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-900">Создать учетную запись</h2>
+          <h2 className="text-xl font-bold text-gray-900">Создать новый аккаунт</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-900 bg-white rounded-full p-1 hover:bg-warm-200 transition-colors"
@@ -77,7 +77,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, o
                 type="text"
                 required
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-warm-400 focus:ring-4 focus:ring-warm-100 outline-none transition-all"
-                placeholder="только латиница и цифры, от 8 символов"
+                placeholder="Только буквы и цифры, от 8 символов"
                 value={login}
                 onChange={(e) => setLogin(e.target.value)}
               />
@@ -91,7 +91,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, o
                 type="password"
                 required
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-warm-400 focus:ring-4 focus:ring-warm-100 outline-none transition-all"
-                placeholder="только латиница, от 6 символов"
+                placeholder="Не менее 6 символов"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -104,7 +104,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, o
               disabled={loading}
               className="w-full bg-warm-400 text-gray-900 font-bold py-3.5 rounded-xl hover:bg-warm-500 transition-all shadow-lg shadow-warm-400/20 transform hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? 'Создаем...' : 'Создать аккаунт'}
+              {loading ? 'Регистрируем...' : 'Создать аккаунт'}
             </button>
           </form>
 

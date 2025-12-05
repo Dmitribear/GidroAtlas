@@ -41,7 +41,7 @@ export function StatsDashboard({ objects, totalObjects, onToggleLayers }: StatsD
           </div>
           <div>
             <span className="text-sm font-bold text-gray-900">{goodCount}</span>
-            <span className="text-xs text-gray-500 ml-1">стабильных</span>
+            <span className="text-xs text-gray-500 ml-1">в хорошем</span>
           </div>
         </div>
 

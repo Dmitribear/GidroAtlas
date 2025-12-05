@@ -77,7 +77,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onOpenR
               <input
                 type="text"
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-warm-400 focus:ring-4 focus:ring-warm-100 outline-none transition-all"
-                placeholder="Ваш логин"
+                placeholder="Введите логин"
                 value={login}
                 onChange={(e) => setLogin(e.target.value)}
               />
@@ -116,7 +116,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onOpenR
               onClick={onOpenRegister}
               className="text-warm-600 font-semibold hover:underline bg-transparent border-0 p-0"
             >
-              Создать учетную запись
+              Зарегистрироваться
             </button>
           </div>
 
@@ -129,7 +129,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onOpenR
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition disabled:opacity-60"
                 disabled={!!oauthLoading}
               >
-                {oauthLoading === 'github' ? 'Открываем GitHub...' : 'GitHub'}
+                {oauthLoading === 'github' ? 'Загрузка GitHub...' : 'GitHub'}
               </button>
               <button
                 type="button"
@@ -137,7 +137,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onOpenR
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition disabled:opacity-60"
                 disabled={!!oauthLoading}
               >
-                {oauthLoading === 'google' ? 'Открываем Google...' : 'Gmail'}
+                {oauthLoading === 'google' ? 'Загрузка Google...' : 'Gmail'}
               </button>
             </div>
           </div>

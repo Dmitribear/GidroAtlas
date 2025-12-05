@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
-import { Header } from './map/Header'
 import { FilterBar } from './map/FilterBar'
 import { ObjectList } from './map/ObjectList'
 import { MapView } from './map/MapView'
@@ -14,6 +13,9 @@ import { normalizeForMarkers } from '../utils'
 import { renderMarkers } from '../utils/mapMarkers'
 import { fetchWaterObjects, importCsvToWaterObjects } from '../api'
 import { getJson } from '@shared/api/http'
+import { Navbar } from '@widgets/landing/Navbar'
+import { LoginModal } from '@widgets/landing/LoginModal'
+import { RegisterModal } from '@widgets/landing/RegisterModal'
 import { normalizeRegionName } from '../constants'
 
 export function GidroAtlasMap() {
@@ -38,6 +40,8 @@ export function GidroAtlasMap() {
     priority: '',
     criticalOnly: false,
   })
+  const [showLogin, setShowLogin] = useState(false)
+  const [showRegister, setShowRegister] = useState(false)
 
   useEffect(() => {
     const storedToken = localStorage.getItem('access_token')
@@ -87,13 +91,12 @@ export function GidroAtlasMap() {
     [filters, sortBy, token],
   )
 
-  // debounce filters/sort changes
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
       setPage(0)
       loadObjects(0, false).catch(() => {
-        setFetchError('Не удалось обновить данные.')
+        setFetchError('Не удалось загрузить объекты.')
         setObjects(fallbackObjects)
         setLoadingObjects(false)
       })
@@ -146,13 +149,13 @@ export function GidroAtlasMap() {
         setUploadError(result.error)
         setCsvMarkers([])
       } else {
-        setCsvMarkers(result.items)
+        setCsvMarkers(normalizeForMarkers(result.items))
         setUploadStatus(`Импортировано ${result.inserted}, пропущено ${result.skipped}`)
         loadObjects(page, false).catch(() => {})
       }
     } catch (error) {
       console.error(error)
-      setUploadError((error as Error).message || 'Не удалось импортировать CSV.')
+      setUploadError((error as Error).message || 'Не удалось загрузить CSV.')
       setCsvMarkers([])
     } finally {
       setIsUploading(false)
@@ -172,86 +175,139 @@ export function GidroAtlasMap() {
     fileInputRef.current?.click()
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('user_login')
+    setToken(null)
+    setUserLogin(null)
+  }
+
+  const handleAuthSuccess = (nextToken: string, login: string) => {
+    setToken(nextToken)
+    setUserLogin(login)
+    localStorage.setItem('access_token', nextToken)
+    localStorage.setItem('user_login', login)
+    setShowLogin(false)
+    setShowRegister(false)
+    loadObjects(0, false).catch(() => {})
+  }
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      <Header
-        onUploadCsv={requestCsvUpload}
-        isUploading={isUploading}
+      <Navbar
+        onLoginClick={() => setShowLogin(true)}
         userLogin={userLogin}
-        onLogout={() => {
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('user_login')
-          setToken(null)
-          setUserLogin(null)
-        }}
+        onLogout={handleLogout}
+        onProfile={() => (window.location.href = '/profile')}
       />
-      {(uploadStatus || uploadError || fetchError || loadingObjects) && (
-        <div className="px-4 pt-2 text-xs space-y-1">
-          {loadingObjects && <div className="text-gray-500">Загружаем объекты карты...</div>}
+
+      <div className="pt-20 flex flex-col h-full">
+        <div className="px-4 pb-2 flex items-center gap-3 text-xs text-gray-700">
+          <button
+            onClick={requestCsvUpload}
+            className="h-8 px-3 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-xs font-medium transition-colors"
+            disabled={isUploading}
+          >
+            {isUploading ? 'Импортируем...' : 'Импорт CSV'}
+          </button>
+          <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleFileChange} />
+          {loadingObjects && <div className="text-gray-500">Загружаем объекты...</div>}
           {uploadStatus && !uploadError && <div className="text-gray-600">{uploadStatus}</div>}
           {uploadError && <div className="text-red-600">{uploadError}</div>}
           {fetchError && <div className="text-amber-600">{fetchError}</div>}
         </div>
-      )}
-      <FilterBar
-        filters={filters}
-        onFiltersChange={setFilters}
-        onShowCritical={() => setFilters((f) => ({ ...f, criticalOnly: !f.criticalOnly }))}
-        normalizeRegion={normalizeRegionName}
-      />
 
-      <div className="flex-1 flex overflow-hidden">
-        <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleFileChange} />
-        <div className="flex-1 relative">
-          <MapView
+        <FilterBar
+          filters={filters}
+          onFiltersChange={setFilters}
+          onShowCritical={() => setFilters((f) => ({ ...f, criticalOnly: !f.criticalOnly }))}
+          normalizeRegion={normalizeRegionName}
+        />
+
+        <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 relative">
+            <MapView
+              objects={filteredObjects}
+              selectedId={selectedObject?.id}
+              hoveredId={hoveredId}
+              onSelect={setSelectedObject}
+              onHover={setHoveredId}
+              onMapClick={handleMapClick}
+            />
+
+            {showLayers ? (
+              <StatsDashboard
+                objects={filteredObjects}
+                totalObjects={objects.length}
+                onToggleLayers={() => setShowLayers(false)}
+              />
+            ) : (
+              <button
+                onClick={() => setShowLayers(true)}
+                className="absolute top-4 left-4 z-20 h-9 px-4 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-100 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+              >
+                Показать слои
+              </button>
+            )}
+
+            {selectedObject && (
+              <ObjectCard
+                object={selectedObject}
+                onClose={() => setSelectedObject(null)}
+                onCompare={() => toggleCompare(selectedObject)}
+                isInCompare={compareObjects.some((o) => o.id === selectedObject.id)}
+              />
+            )}
+          </div>
+
+          <ObjectList
             objects={filteredObjects}
             selectedId={selectedObject?.id}
             hoveredId={hoveredId}
             onSelect={setSelectedObject}
             onHover={setHoveredId}
-            onMapClick={handleMapClick}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            compareObjects={compareObjects}
+            onToggleCompare={toggleCompare}
+            onOpenCompare={() => setShowCompare(true)}
+            hasMore={hasMore}
+            onLoadMore={() => {
+              const next = page + 1
+              setPage(next)
+              loadObjects(next, true).catch(() => {})
+            }}
+            isLoading={loadingObjects}
           />
-
-          {showLayers && <StatsDashboard objects={filteredObjects} totalObjects={objects.length} onToggleLayers={() => setShowLayers((v) => !v)} />}
-
-          {selectedObject && (
-            <ObjectCard
-              object={selectedObject}
-              onClose={() => setSelectedObject(null)}
-              onCompare={() => toggleCompare(selectedObject)}
-              isInCompare={compareObjects.some((o) => o.id === selectedObject.id)}
-            />
-          )}
         </div>
 
-        <ObjectList
-          objects={filteredObjects}
-          selectedId={selectedObject?.id}
-          hoveredId={hoveredId}
-          onSelect={setSelectedObject}
-          onHover={setHoveredId}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          compareObjects={compareObjects}
-          onToggleCompare={toggleCompare}
-          onOpenCompare={() => setShowCompare(true)}
-          hasMore={hasMore}
-          onLoadMore={() => {
-            const next = page + 1
-            setPage(next)
-            loadObjects(next, true).catch(() => {})
-          }}
-          isLoading={loadingObjects}
-        />
+        {showCompare && compareObjects.length > 0 && (
+          <ComparePanel
+            objects={compareObjects}
+            onClose={() => setShowCompare(false)}
+            onRemove={(id) => setCompareObjects((prev) => prev.filter((o) => o.id !== id))}
+          />
+        )}
       </div>
 
-      {showCompare && compareObjects.length > 0 && (
-        <ComparePanel
-          objects={compareObjects}
-          onClose={() => setShowCompare(false)}
-          onRemove={(id) => setCompareObjects((prev) => prev.filter((o) => o.id !== id))}
-        />
-      )}
+      <LoginModal
+        isOpen={showLogin}
+        onClose={() => setShowLogin(false)}
+        onOpenRegister={() => {
+          setShowLogin(false)
+          setShowRegister(true)
+        }}
+        onAuthSuccess={handleAuthSuccess}
+      />
+      <RegisterModal
+        isOpen={showRegister}
+        onClose={() => setShowRegister(false)}
+        onSwitchToLogin={() => {
+          setShowRegister(false)
+          setShowLogin(true)
+        }}
+        onAuthSuccess={handleAuthSuccess}
+      />
     </div>
   )
 }

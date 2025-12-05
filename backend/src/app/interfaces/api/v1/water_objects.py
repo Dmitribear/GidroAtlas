@@ -20,9 +20,20 @@ def _normalize_water_type(value: str | None) -> str | None:
   if value is None:
     return None
   normalized = value.strip().lower()
-  if normalized in {"fresh", "presnaya", "пресная", "пресная вода"}:
+  fresh_values = {"fresh", "presnaya", "пресная", "пресная вода", "пресн.", "несоленая", "не соленая"}
+  non_fresh_values = {
+    "non_fresh",
+    "non-fresh",
+    "saline",
+    "solenaya",
+    "соленая",
+    "солёная",
+    "солоноватая",
+    "непресная",
+  }
+  if normalized in fresh_values:
     return "fresh"
-  if normalized in {"non_fresh", "non-fresh", "saline", "solenaya", "solyonaya", "соленая", "солёная", "непресная"}:
+  if normalized in non_fresh_values:
     return "non_fresh"
   return None
 
@@ -46,11 +57,11 @@ def _normalize_resource_type(value: str | None) -> str | None:
   direct = mapping.get(normalized)
   if direct:
     return direct
-  if "водохранилище" in normalized or "гтс" in normalized:
+  if "водохранилищ" in normalized or "гтс" in normalized:
     return "reservoir"
   if "канал" in normalized:
     return "canal"
-  if "озеро" in normalized:
+  if "озер" in normalized or "озёр" in normalized:
     return "lake"
   return None
 
@@ -179,26 +190,32 @@ async def import_water_objects(
   skipped_details: list[dict] = []
 
   for idx, row in enumerate(reader, start=1):
-    resource_type = _normalize_resource_type(
-      row.get("resource_type") or row.get("resourceType") or row.get("ResourceType")
-    ) or "reservoir"
-    water_type = _normalize_water_type(row.get("water_type") or row.get("waterType") or row.get("WaterType")) or "fresh"
+    raw_resource = row.get("resource_type") or row.get("resourceType") or row.get("ResourceType")
+    raw_water = row.get("water_type") or row.get("waterType") or row.get("WaterType")
+
+    resource_type = _normalize_resource_type(raw_resource) or "reservoir"
+    water_type = _normalize_water_type(raw_water) or "fresh"
 
     try:
       passport_date_raw = row.get("passport_date") or row.get("passportDate") or row.get("date")
-      passport_date = datetime.fromisoformat(passport_date_raw).date() if passport_date_raw else None
-      technical_condition = int(
+      passport_date = _parse_date(passport_date_raw)
+
+      technical_condition_raw = (
         row.get("technical_condition")
         or row.get("condition")
         or row.get("Condition")
         or row.get("technicalCondition")
-        or 0
+        or row.get("TechnicalCondition")
       )
+      technical_condition = int(technical_condition_raw) if technical_condition_raw else 0
+
       latitude = float(row.get("latitude") or row.get("lat") or row.get("Latitude") or row.get("Lat"))
       longitude = float(row.get("longitude") or row.get("lon") or row.get("Longitude") or row.get("Lon"))
     except (ValueError, TypeError) as exc:
       skipped += 1
-      skipped_details.append({"row": idx, "reason": f"parse error: {exc}", "data": row})
+      reason = f"parse error: {exc}"
+      skipped_details.append({"row": idx, "reason": reason, "data": row})
+      logger.info("CSV row skipped: %s", reason, extra={"row": idx})
       continue
 
     if passport_date is None:
@@ -229,7 +246,9 @@ async def import_water_objects(
       )
     except (ValidationError, ValueError) as exc:
       skipped += 1
-      skipped_details.append({"row": idx, "reason": f"validation error: {exc}", "data": row})
+      reason = f"validation error: {exc}"
+      skipped_details.append({"row": idx, "reason": reason, "data": row})
+      logger.info("CSV row skipped: %s", reason, extra={"row": idx})
       continue
 
     obj = await CreateWaterObject(repo)(payload_obj)
@@ -237,7 +256,7 @@ async def import_water_objects(
 
   if skipped_details:
     for detail in skipped_details[:5]:
-      logger.info("CSV row skipped", extra=detail)
+      logger.info("CSV row skipped detail", extra=detail)
 
   return {
     "inserted": len(created),

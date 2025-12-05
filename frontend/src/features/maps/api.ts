@@ -62,7 +62,7 @@ export async function fetchWaterObjects(
   pageSize = 50,
 ): Promise<{ data: WaterObject[]; hasMore: boolean; error?: string }> {
   const params = new URLSearchParams()
-  params.set('limit', String(pageSize + 1)) // на один больше, чтобы понять наличие следующей страницы
+  params.set('limit', String(pageSize + 1)) // берем на один больше, чтобы понять есть ли следующая страница
   params.set('offset', String(page * pageSize))
 
   if (filters.region) params.set('region', filters.region)

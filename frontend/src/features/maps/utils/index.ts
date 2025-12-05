@@ -13,11 +13,11 @@ export function getConditionColor(condition: number): string {
 
 export function getConditionLabel(condition: number): string {
   const labels: Record<number, string> = {
-    1: 'Минимальный риск',
-    2: 'Низкий риск',
-    3: 'Средний риск',
-    4: 'Повышенный риск',
-    5: 'Критичный риск',
+    1: 'Очень хорошее',
+    2: 'Хорошее',
+    3: 'Удовлетворительное',
+    4: 'Неудовлетворительное',
+    5: 'Аварийное',
   }
   return labels[condition] || 'Нет данных'
 }

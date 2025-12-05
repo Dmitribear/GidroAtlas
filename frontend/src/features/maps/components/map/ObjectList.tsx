@@ -22,10 +22,10 @@ interface ObjectListProps {
 }
 
 const sortOptions: { value: SortOption; label: string }[] = [
-  { value: 'dangerous', label: 'Самые рискованные' },
+  { value: 'dangerous', label: 'Самые опасные' },
   { value: 'safe', label: 'Самые безопасные' },
-  { value: 'oldest', label: 'Старые паспорта' },
-  { value: 'newest', label: 'Новые паспорта' },
+  { value: 'oldest', label: 'Самые старые' },
+  { value: 'newest', label: 'Самые новые' },
 ]
 
 export function ObjectList({
@@ -59,9 +59,9 @@ export function ObjectList({
   return (
     <div className="w-96 border-l border-gray-200 flex flex-col bg-white shrink-0">
       <div className="p-3 border-b border-gray-100">
-        <h2 className="text-base font-semibold text-gray-900">Водные объекты</h2>
+        <h2 className="text-base font-semibold text-gray-900">Список объектов</h2>
         <div className="flex items-center justify-between mt-1">
-          <p className="text-xs text-gray-500">{objects.length} объектов</p>
+          <p className="text-xs text-gray-500">{objects.length} найдено</p>
 
           <div className="relative" ref={sortRef}>
             <button
@@ -124,7 +124,7 @@ export function ObjectList({
               disabled={isLoading}
               className="w-full h-9 flex items-center justify-center rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60"
             >
-              {isLoading ? 'Загружаем...' : 'Показать ещё'}
+              {isLoading ? 'Загрузка...' : 'Показать ещё'}
             </button>
           </div>
         )}
@@ -223,10 +223,10 @@ function ObjectListCard({
         <p className="text-[10px] text-gray-500 truncate">{object.region}</p>
         <div className="flex items-center gap-2 mt-1">
           <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium text-white ${conditionBgColor}`}>
-            {object.condition <= 2 ? 'Стабильное' : object.condition <= 3 ? 'Среднее' : 'Критичное'}
+            {object.condition <= 2 ? 'Хорошее' : object.condition <= 3 ? 'Удовлетворительное' : 'Аварийное'}
           </span>
           <span className="text-[10px] text-gray-400">
-            {object.waterType === 'fresh' ? 'Пресная' : 'Солёная'}
+            {object.waterType === 'fresh' ? 'Пресная' : 'Непресная'}
           </span>
         </div>
       </div>
