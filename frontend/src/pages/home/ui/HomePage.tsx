@@ -121,13 +121,6 @@ export const HomePage = () => {
           <Hero onPrimaryCta={scrollToContact} onSecondaryCta={scrollToWork} />
           <Marquee />
           <ServicesSection />
-          {authError && (
-            <div className="max-w-5xl mx-auto px-6">
-              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                Authentication error: {authError}
-              </div>
-            </div>
-          )}
           <StatsSection />
         </main>
       </div>
