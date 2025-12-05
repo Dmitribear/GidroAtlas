@@ -13,14 +13,14 @@ router = APIRouter(tags=["auth"])
 async def register_user(
   payload: RegisterRequest, repo: UserRepositorySupabase = Depends(get_user_repository)
 ) -> Token:
-  user = await RegisterUser(repo)(payload.email, payload.password)
-  token = await AuthenticateUser(repo)(payload.email, payload.password)
+  await RegisterUser(repo)(payload.login, payload.password)
+  token = await AuthenticateUser(repo)(payload.login, payload.password)
   return Token(access_token=token)
 
 
 @router.post("/auth/login", response_model=Token)
 async def login(payload: LoginRequest, repo: UserRepositorySupabase = Depends(get_user_repository)) -> Token:
-  token = await AuthenticateUser(repo)(payload.email, payload.password)
+  token = await AuthenticateUser(repo)(payload.login, payload.password)
   return Token(access_token=token)
 
 
