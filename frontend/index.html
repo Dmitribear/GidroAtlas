@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hydro Asset Risk MVP</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #f4f6f8;
+        color: #0f172a;
+      }
+
+      .app {
+        max-width: 520px;
+        margin: 40px auto;
+        padding: 32px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+      }
+
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+      }
+
+      p {
+        color: #475569;
+        margin-top: 0;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-top: 18px;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px 12px;
+        margin-top: 6px;
+        border-radius: 8px;
+        border: 1px solid #cbd5f5;
+        font-size: 1rem;
+      }
+
+      button {
+        width: 100%;
+        margin-top: 24px;
+        padding: 12px;
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #1e3fa3;
+      }
+
+      .result {
+        margin-top: 24px;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <h1>AI-анализ состояния</h1>
+      <p>Заполни параметры объекта и запусти предсказание.</p>
+      <form id="risk-form">
+        <label for="technical_condition">technical_condition (1–5)</label>
+        <input
+          id="technical_condition"
+          name="technical_condition"
+          type="number"
+          min="1"
+          max="5"
+          required
+        />
+
+        <label for="passport_age_years">passport_age_years</label>
+        <input
+          id="passport_age_years"
+          name="passport_age_years"
+          type="number"
+          min="0"
+          required
+        />
+
+        <label for="resource_type">resource_type (0/1/2)</label>
+        <input
+          id="resource_type"
+          name="resource_type"
+          type="number"
+          min="0"
+          max="2"
+          required
+        />
+
+        <label for="water_type">water_type (0/1)</label>
+        <input
+          id="water_type"
+          name="water_type"
+          type="number"
+          min="0"
+          max="1"
+          required
+        />
+
+        <label for="fauna">fauna (0/1)</label>
+        <input id="fauna" name="fauna" type="number" min="0" max="1" required />
+
+        <label for="region_id">region_id</label>
+        <input id="region_id" name="region_id" type="number" min="0" required />
+
+        <button type="submit">Predict Risk</button>
+      </form>
+
+      <div id="risk-output" class="result">AI Risk Prediction: --%</div>
+    </div>
+    <script src="./script.js" defer></script>
+  </body>
+</html>
+
