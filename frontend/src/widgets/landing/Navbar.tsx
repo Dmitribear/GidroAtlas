@@ -10,10 +10,15 @@ interface NavbarProps {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Work', href: '#work' },
-  { label: 'Services', href: '#services' },
-  { label: 'Contact', href: '#contact' },
+  { label: 'Главная', href: '#work' },
+  { label: 'Сервисы', href: '#services' },
+  { label: 'Контакты', href: '#contact' },
 ]
+
+const navFontStyle: React.CSSProperties = {
+  fontFamily: '"Ubuntu", system-ui, -apple-system, sans-serif',
+  fontWeight: 500,
+}
 
 export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogout, onProfile }) => {
   const [scrolled, setScrolled] = useState(false)
@@ -27,17 +32,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogou
   }, [])
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 px-6 py-6 transition-all duration-300">
+    <nav className="fixed top-0 left-0 w-full z-50 px-6 py-6 transition-all duration-300" style={navFontStyle}>
       <div
         className={`max-w-7xl mx-auto bg-white/80 backdrop-blur-md border border-slate-100 rounded-full px-6 py-4 flex justify-between items-center shadow-sm transition-all ${
           scrolled ? 'shadow-md' : ''
         }`}
       >
-        <a href="#hero" className="text-2xl font-semibold tracking-tighter flex items-center gap-2 display-font">
+        <a href="#hero" className="text-2xl font-medium tracking-tighter flex items-center gap-2">
           <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white text-sm font-bold">
-            D
+            G
           </div>
-          Danlpet
+          GidroAtlas
         </a>
 
         <div className="hidden md:flex gap-8 items-center">
@@ -59,13 +64,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogou
                 setMenuOpen(false)
               }}
             >
-              Sign in
+              Войти
             </Button>
           ) : (
             <div className="relative">
               <button
                 onClick={() => setMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 border border-slate-200 shadow-sm hover:bg-white transition"
+                className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-900 border border-slate-200 shadow-sm hover:bg-white transition"
               >
                 <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                 {userLogin}
@@ -86,7 +91,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogou
                       onProfile()
                     }}
                   >
-                    Profile
+                    Профиль
                   </button>
                   <button
                     className="w-full text-left px-4 py-2 text-sm text-slate-800 hover:bg-slate-50"
@@ -95,17 +100,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogou
                       onLogout()
                     }}
                   >
-                    Logout
+                    Выйти
                   </button>
                 </div>
               )}
             </div>
           )}
           <a
-            href="#contact"
+            href="#services" // dashboard
             className="group relative px-6 py-2.5 bg-black text-white rounded-full text-sm font-medium overflow-hidden hover:scale-105 transition-transform"
           >
-            <span className="relative z-10">Let&apos;s Talk</span>
+            <span className="relative z-10">Перейти в панель управления</span>
             <div className="absolute inset-0 bg-fuchsia-500 transform scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-300 ease-out"></div>
           </a>
         </div>
@@ -145,12 +150,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogou
                 setMobileMenuOpen(false)
               }}
             >
-              Sign in
+              Войти
             </Button>
           ) : (
             <div className="flex flex-col gap-3">
               <button
-                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 text-sm font-medium text-slate-800 hover:bg-slate-50"
                 onClick={() => {
                   onProfile()
                   setMobileMenuOpen(false)
@@ -159,7 +164,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogou
                 Profile
               </button>
               <button
-                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 text-sm font-medium text-slate-800 hover:bg-slate-50"
                 onClick={() => {
                   onLogout()
                   setMobileMenuOpen(false)
@@ -171,7 +176,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogou
           )}
           <a
             href="#contact"
-            className="w-full inline-flex items-center justify-center px-4 py-3 rounded-xl bg-black text-white font-semibold hover:bg-fuchsia-600 transition"
+            className="w-full inline-flex items-center justify-center px-4 py-3 rounded-xl bg-black text-white font-medium hover:bg-fuchsia-600 transition"
             onClick={() => setMobileMenuOpen(false)}
           >
             Let&apos;s Talk

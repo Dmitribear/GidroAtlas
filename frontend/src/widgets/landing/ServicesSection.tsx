@@ -12,43 +12,46 @@ type ServiceCard = {
 
 const SERVICES: ServiceCard[] = [
   {
-    title: 'Product Design',
-    description: 'UI/UX that feels intuitive. We design systems that scale and interfaces that delight users on every click.',
-    icon: 'layers',
-    bullet1: 'Design Systems',
-    bullet2: 'Prototyping',
+    title: 'Интерактивная карта',
+    description:
+      'Визуализация водоёмов и гидротехнических сооружений на динамической карте. Быстрый доступ к характеристикам объектов.',
+    icon: 'map',
+    bullet1: 'Поиск по объектам',
+    bullet2: 'Просмотр параметров',
     tone: 'light',
   },
   {
-    title: 'Development',
-    description: 'Clean code, fast load times, and buttery smooth animations. We build with the latest tech stack.',
-    icon: 'code-2',
-    bullet1: 'React & Next.js',
-    bullet2: 'Creative Coding',
-    bullet3: 'Headless CMS',
+    title: 'Аналитика и приоритезация',
+    description:
+      'Оценка технического состояния и определение объектов, требующих обследования в первую очередь.',
+    icon: 'bar-chart-3',
+    bullet1: 'Формирование приоритетов',
+    bullet2: 'Аналитическая модель',
+    bullet3: 'Простая оценка состояния',
     tone: 'dark',
   },
   {
-    title: 'Brand Strategy',
-    description: 'Finding your voice in a crowded room. We craft identities that people remember and relate to.',
-    icon: 'megaphone',
-    bullet1: 'Visual Identity',
-    bullet2: 'Tone of Voice',
+    title: 'Структурированная база данных',
+    description:
+      'Хранение информации о состоянии сооружений, параметрах и технической документации.',
+    icon: 'database',
+    bullet1: 'Паспортные данные',
+    bullet2: 'Метаданные объектов',
     tone: 'light',
   },
-]
+] 
 
 export const ServicesSection: React.FC = () => {
   return (
     <section id="services" className="py-24 px-6 bg-slate-50 rounded-[3rem] mx-4 mb-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-20">
-          <span className="text-fuchsia-600 font-semibold tracking-widest uppercase text-xs mb-4 block">Our Expertise</span>
+          <span className="text-fuchsia-600 font-semibold tracking-widest uppercase text-xs mb-4 block">Наши возможности</span>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-6">
-            We don&apos;t just make it look good. We make it work.
+            Не просто карта — аналитический инструмент.
           </h2>
           <p className="text-slate-600 text-lg md:text-xl">
-            Combining data-driven strategy with &quot;whoa, that&apos;s cool&quot; design.
+            Мы объединяем данные, визуализацию и приоритезацию объектов для оперативной оценки.
           </p>
         </div>
 

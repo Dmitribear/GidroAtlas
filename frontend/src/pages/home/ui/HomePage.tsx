@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { Navbar } from '@widgets/landing/Navbar'
 import { Hero } from '@widgets/landing/Hero'
 import { Marquee } from '@widgets/landing/Marquee'
-import { FeaturedWork } from '@widgets/landing/FeaturedWork'
 import { ServicesSection } from '@widgets/landing/ServicesSection'
 import { StatsSection } from '@widgets/landing/StatsSection'
 import { ContactFooter } from '@widgets/landing/ContactFooter'
@@ -121,7 +120,6 @@ export const HomePage = () => {
         <main className="flex-grow flex flex-col">
           <Hero onPrimaryCta={scrollToContact} onSecondaryCta={scrollToWork} />
           <Marquee />
-          <FeaturedWork />
           <ServicesSection />
           {authError && (
             <div className="max-w-5xl mx-auto px-6">
@@ -135,10 +133,7 @@ export const HomePage = () => {
       </div>
 
       {accessToken && userLogin && (
-        <div className="fixed right-4 top-24 z-20 inline-flex items-center gap-2 rounded-full bg-white/90 border border-slate-200 px-4 py-2 shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-sm font-semibold text-slate-700">Signed in as {userLogin}</span>
-        </div>
+      <span></span>
       )}
 
       <ContactFooter />
