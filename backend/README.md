@@ -44,3 +44,23 @@ Environment variables (`backend/.env`):
    - `POST /api/v1/auth/register` с `{ "email": "user@example.com", "password": "secret123" }`
    - `POST /api/v1/auth/login` с теми же данными
    - `GET /api/v1/auth/me` с заголовком `Authorization: Bearer <token>`
+
+## Таблица water_objects (водные ресурсы)
+Создайте таблицу для объектов водных ресурсов:
+```sql
+create extension if not exists pgcrypto;
+create table if not exists public.water_objects (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  region text not null,
+  resource_type text not null check (resource_type in ('lake', 'canal', 'reservoir')),
+  water_type text not null check (water_type in ('fresh', 'non_fresh')),
+  fauna boolean not null,
+  passport_date date not null,
+  technical_condition integer not null check (technical_condition between 1 and 5),
+  latitude double precision not null,
+  longitude double precision not null,
+  pdf_url text,
+  priority integer
+);
+```

@@ -5,6 +5,7 @@ from jose import JWTError, jwt
 from app.core.config import get_settings
 from app.infrastructure.supabase.client import SupabaseClient
 from app.infrastructure.supabase.repositories import UserRepositorySupabase
+from app.infrastructure.supabase.water_objects import WaterObjectRepositorySupabase
 
 http_bearer = HTTPBearer(auto_error=False)
 
@@ -16,6 +17,12 @@ def get_supabase_client() -> SupabaseClient:
 
 def get_user_repository(client: SupabaseClient = Depends(get_supabase_client)) -> UserRepositorySupabase:
   return UserRepositorySupabase(client)
+
+
+def get_water_object_repository(
+  client: SupabaseClient = Depends(get_supabase_client),
+) -> WaterObjectRepositorySupabase:
+  return WaterObjectRepositorySupabase(client)
 
 
 def get_current_subject(

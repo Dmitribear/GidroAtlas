@@ -23,3 +23,7 @@ class SupabaseClient:
     if not response.data:
       return None
     return response.data[0]
+
+  async def select_many(self, table: str) -> list[dict[str, Any]]:
+    response = await asyncio.to_thread(self.raw.table(table).select("*").execute)
+    return response.data or []
