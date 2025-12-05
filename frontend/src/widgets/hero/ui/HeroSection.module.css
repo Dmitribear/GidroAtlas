@@ -1,0 +1,48 @@
+.hero {
+  display: grid;
+  gap: 18px;
+  padding: 28px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: linear-gradient(140deg, rgba(111, 230, 255, 0.06), rgba(255, 255, 255, 0.02));
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.title {
+  margin: 0;
+}
+
+.lead {
+  max-width: 720px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.stat {
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.value {
+  display: block;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.label {
+  color: var(--muted);
+  font-size: 13px;
+}
