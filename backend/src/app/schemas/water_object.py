@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, HttpUrl
 
 ResourceType = Literal["lake", "canal", "reservoir"]
 WaterType = Literal["fresh", "non_fresh"]
+SortDirection = Literal["asc", "desc"]
 
 
 class WaterObjectCreate(BaseModel):
@@ -23,3 +24,16 @@ class WaterObjectCreate(BaseModel):
 
 class WaterObjectResponse(WaterObjectCreate):
   id: str
+
+
+class WaterObjectQuery(BaseModel):
+  region: str | None = None
+  resource_type: ResourceType | None = None
+  water_type: WaterType | None = None
+  fauna: bool | None = None
+  sort_by: Literal[
+    "name", "region", "priority", "technical_condition", "passport_date", "resource_type", "water_type"
+  ] = "priority"
+  sort_dir: SortDirection = "desc"
+  limit: int = Field(default=50, ge=1, le=200)
+  offset: int = Field(default=0, ge=0)

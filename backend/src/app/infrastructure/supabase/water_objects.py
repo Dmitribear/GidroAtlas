@@ -1,9 +1,10 @@
+import asyncio
 from typing import Any
 from uuid import uuid4
 
 from app.domain.water_object import WaterObject
 from app.infrastructure.supabase.client import SupabaseClient
-from app.schemas.water_object import WaterObjectCreate
+from app.schemas.water_object import WaterObjectCreate, WaterObjectQuery
 
 
 class WaterObjectRepositorySupabase:
@@ -31,9 +32,30 @@ class WaterObjectRepositorySupabase:
     )
     return self._to_entity(record)
 
-  async def list_all(self) -> list[WaterObject]:
-    rows = await self._client.select_many(self._table)
-    return [self._to_entity(row) for row in rows]
+  async def list_filtered(self, query: WaterObjectQuery) -> list[WaterObject]:
+    qb = self._client.raw.table(self._table).select("*")
+
+    if query.region:
+      qb = qb.eq("region", query.region)
+    if query.resource_type:
+      qb = qb.eq("resource_type", query.resource_type)
+    if query.water_type:
+      qb = qb.eq("water_type", query.water_type)
+    if query.fauna is not None:
+      qb = qb.eq("fauna", query.fauna)
+
+    qb = qb.order(query.sort_by, desc=query.sort_dir == "desc")
+    end = query.offset + query.limit - 1
+    qb = qb.range(query.offset, end)
+
+    rows = await asyncio.to_thread(qb.execute)
+    return [self._to_entity(row) for row in rows.data or []]
+
+  async def get_by_id(self, object_id: str) -> WaterObject | None:
+    record = await self._client.select_one(self._table, "id", object_id)
+    if record is None:
+      return None
+    return self._to_entity(record)
 
   def _to_entity(self, row: dict[str, Any]) -> WaterObject:
     return WaterObject(

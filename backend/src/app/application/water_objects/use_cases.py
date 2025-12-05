@@ -1,6 +1,6 @@
 from app.domain.water_object import WaterObject
 from app.infrastructure.supabase.water_objects import WaterObjectRepositorySupabase
-from app.schemas.water_object import WaterObjectCreate
+from app.schemas.water_object import WaterObjectCreate, WaterObjectQuery
 
 
 class CreateWaterObject:
@@ -15,5 +15,13 @@ class ListWaterObjects:
   def __init__(self, repo: WaterObjectRepositorySupabase):
     self._repo = repo
 
-  async def __call__(self) -> list[WaterObject]:
-    return await self._repo.list_all()
+  async def __call__(self, query: WaterObjectQuery) -> list[WaterObject]:
+    return await self._repo.list_filtered(query)
+
+
+class GetWaterObject:
+  def __init__(self, repo: WaterObjectRepositorySupabase):
+    self._repo = repo
+
+  async def __call__(self, object_id: str) -> WaterObject | None:
+    return await self._repo.get_by_id(object_id)
