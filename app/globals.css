@@ -1,0 +1,83 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Inter", "Inter Fallback", system-ui, sans-serif;
+  --color-background: oklch(0.985 0.002 240);
+  --color-foreground: oklch(0.145 0.02 240);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.145 0.02 240);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.145 0.02 240);
+  --color-primary: oklch(0.45 0.18 240);
+  --color-primary-foreground: oklch(0.985 0 0);
+  --color-secondary: oklch(0.96 0.01 220);
+  --color-secondary-foreground: oklch(0.205 0.02 240);
+  --color-muted: oklch(0.96 0.01 220);
+  --color-muted-foreground: oklch(0.5 0.02 240);
+  --color-accent: oklch(0.75 0.15 195);
+  --color-accent-foreground: oklch(0.18 0.02 240);
+  --color-destructive: oklch(0.55 0.22 25);
+  --color-destructive-foreground: oklch(0.985 0 0);
+  --color-border: oklch(0.9 0.01 220);
+  --color-input: oklch(0.9 0.01 220);
+  --color-ring: oklch(0.45 0.18 240);
+  --color-chart-1: oklch(0.65 0.2 145);
+  --color-chart-2: oklch(0.72 0.18 130);
+  --color-chart-3: oklch(0.8 0.18 85);
+  --color-chart-4: oklch(0.65 0.2 45);
+  --color-chart-5: oklch(0.55 0.22 25);
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 1rem;
+  --color-sidebar: oklch(0.985 0 0);
+  --color-sidebar-foreground: oklch(0.145 0 0);
+  --color-sidebar-primary: oklch(0.205 0 0);
+  --color-sidebar-primary-foreground: oklch(0.985 0 0);
+  --color-sidebar-accent: oklch(0.97 0 0);
+  --color-sidebar-accent-foreground: oklch(0.205 0 0);
+  --color-sidebar-border: oklch(0.922 0 0);
+  --color-sidebar-ring: oklch(0.708 0 0);
+
+  /* Добавляем кастомные анимации через тему */
+  --animate-pulse-ring: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-float: float-marker 3s ease-in-out infinite;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Определяем keyframes на уровне base */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes float-marker {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
