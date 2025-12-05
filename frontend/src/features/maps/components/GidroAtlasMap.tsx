@@ -41,6 +41,7 @@ export function GidroAtlasMap() {
     condition: null,
     priority: '',
     criticalOnly: false,
+    search: '',
   })
   const [showLogin, setShowLogin] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
@@ -65,19 +66,46 @@ export function GidroAtlasMap() {
   }, [])
 
   const filteredObjects = useMemo(() => {
-    if (!selectionBounds) return objects
-    return objects.filter((obj) => {
-      const lat = Number(obj.coordinates.lat)
-      const lng = Number(obj.coordinates.lng)
-      if (Number.isNaN(lat) || Number.isNaN(lng)) return false
-      return (
-        lat >= selectionBounds.south &&
-        lat <= selectionBounds.north &&
-        lng >= selectionBounds.west &&
-        lng <= selectionBounds.east
-      )
-    })
-  }, [objects, selectionBounds])
+    let result = objects
+    if (selectionBounds) {
+      result = result.filter((obj) => {
+        const lat = Number(obj.coordinates.lat)
+        const lng = Number(obj.coordinates.lng)
+        if (Number.isNaN(lat) || Number.isNaN(lng)) return false
+        return (
+          lat >= selectionBounds.south &&
+          lat <= selectionBounds.north &&
+          lng >= selectionBounds.west &&
+          lng <= selectionBounds.east
+        )
+      })
+    }
+    if (filters.search.trim()) {
+      const q = filters.search.trim().toLowerCase()
+      result = result.filter((obj) => {
+        const haystack = [
+          obj.name,
+          obj.region,
+          obj.resourceType,
+          obj.waterType,
+          obj.pdfUrl || '',
+        ]
+          .join(' ')
+          .toLowerCase()
+        return haystack.includes(q)
+      })
+    }
+    if (filters.hasFauna !== null) {
+      result = result.filter((o) => o.hasFauna === filters.hasFauna)
+    }
+    if (filters.passportDateFrom) {
+      result = result.filter((o) => o.passportDate >= filters.passportDateFrom)
+    }
+    if (filters.passportDateTo) {
+      result = result.filter((o) => o.passportDate <= filters.passportDateTo)
+    }
+    return result
+  }, [objects, selectionBounds, filters.search, filters.hasFauna, filters.passportDateFrom, filters.passportDateTo])
 
   const [csvMarkers, setCsvMarkers] = useState<any[]>([])
   const filteredCsvMarkers = useMemo(() => {
@@ -163,6 +191,15 @@ export function GidroAtlasMap() {
   useEffect(() => {
     updateLeafletMarkers()
   }, [updateLeafletMarkers])
+
+  // highlight first match on search
+  useEffect(() => {
+    if (!filters.search.trim()) return
+    if (filteredObjects.length === 0) return
+    const first = filteredObjects[0]
+    setSelectedObject(first)
+    setHoveredId(first.id)
+  }, [filters.search, filteredObjects])
 
   useEffect(() => {
     const handler = () => updateLeafletMarkers()

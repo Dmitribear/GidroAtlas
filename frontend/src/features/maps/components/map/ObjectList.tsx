@@ -22,10 +22,22 @@ interface ObjectListProps {
 }
 
 const sortOptions: { value: SortOption; label: string }[] = [
-  { value: 'dangerous', label: 'Самые опасные' },
-  { value: 'safe', label: 'Самые безопасные' },
-  { value: 'oldest', label: 'Самые старые' },
-  { value: 'newest', label: 'Самые новые' },
+  { value: 'priority_desc', label: 'Приоритет: высокий → низкий' },
+  { value: 'priority_asc', label: 'Приоритет: низкий → высокий' },
+  { value: 'condition_desc', label: 'Состояние: 5 → 1' },
+  { value: 'condition_asc', label: 'Состояние: 1 → 5' },
+  { value: 'passport_date_desc', label: 'Паспорт: новые → старые' },
+  { value: 'passport_date_asc', label: 'Паспорт: старые → новые' },
+  { value: 'name_asc', label: 'Название A → Я' },
+  { value: 'name_desc', label: 'Название Я → A' },
+  { value: 'region_asc', label: 'Регион A → Я' },
+  { value: 'region_desc', label: 'Регион Я → A' },
+  { value: 'resource_type_asc', label: 'Тип ресурса A → Я' },
+  { value: 'resource_type_desc', label: 'Тип ресурса Я → A' },
+  { value: 'water_type_asc', label: 'Тип воды A → Я' },
+  { value: 'water_type_desc', label: 'Тип воды Я → A' },
+  { value: 'fauna_desc', label: 'Фауна: есть → нет' },
+  { value: 'fauna_asc', label: 'Фауна: нет → есть' },
 ]
 
 export function ObjectList({

@@ -23,11 +23,42 @@ const PRIORITY_TO_API: Record<string, number> = { high: 3, medium: 2, low: 1 }
 const PRIORITY_FROM_API: Record<number, 'high' | 'medium' | 'low'> = { 3: 'high', 2: 'medium', 1: 'low' }
 
 function mapSort(sortBy: SortOption) {
-  if (sortBy === 'dangerous') return { sort_by: 'technical_condition', sort_dir: 'desc' }
-  if (sortBy === 'safe') return { sort_by: 'technical_condition', sort_dir: 'asc' }
-  if (sortBy === 'oldest') return { sort_by: 'passport_date', sort_dir: 'asc' }
-  if (sortBy === 'newest') return { sort_by: 'passport_date', sort_dir: 'desc' }
-  return { sort_by: 'priority', sort_dir: 'desc' }
+  switch (sortBy) {
+    case 'priority_desc':
+      return { sort_by: 'priority', sort_dir: 'desc' }
+    case 'priority_asc':
+      return { sort_by: 'priority', sort_dir: 'asc' }
+    case 'condition_desc':
+      return { sort_by: 'technical_condition', sort_dir: 'desc' }
+    case 'condition_asc':
+      return { sort_by: 'technical_condition', sort_dir: 'asc' }
+    case 'passport_date_desc':
+      return { sort_by: 'passport_date', sort_dir: 'desc' }
+    case 'passport_date_asc':
+      return { sort_by: 'passport_date', sort_dir: 'asc' }
+    case 'name_asc':
+      return { sort_by: 'name', sort_dir: 'asc' }
+    case 'name_desc':
+      return { sort_by: 'name', sort_dir: 'desc' }
+    case 'region_asc':
+      return { sort_by: 'region', sort_dir: 'asc' }
+    case 'region_desc':
+      return { sort_by: 'region', sort_dir: 'desc' }
+    case 'resource_type_asc':
+      return { sort_by: 'resource_type', sort_dir: 'asc' }
+    case 'resource_type_desc':
+      return { sort_by: 'resource_type', sort_dir: 'desc' }
+    case 'water_type_asc':
+      return { sort_by: 'water_type', sort_dir: 'asc' }
+    case 'water_type_desc':
+      return { sort_by: 'water_type', sort_dir: 'desc' }
+    case 'fauna_asc':
+      return { sort_by: 'fauna', sort_dir: 'asc' }
+    case 'fauna_desc':
+      return { sort_by: 'fauna', sort_dir: 'desc' }
+    default:
+      return { sort_by: 'priority', sort_dir: 'desc' }
+  }
 }
 
 function mapApiObject(item: ApiWaterObject): WaterObject {
@@ -77,6 +108,7 @@ export async function fetchWaterObjects(
   }
   if (filters.passportDateFrom) params.set('passport_date_from', filters.passportDateFrom)
   if (filters.passportDateTo) params.set('passport_date_to', filters.passportDateTo)
+  // search handled client-side
 
   const sortParams = mapSort(sortBy)
   params.set('sort_by', sortParams.sort_by)

@@ -46,6 +46,7 @@ export function FilterBar({ filters, onFiltersChange, onShowCritical, normalizeR
       condition: null,
       priority: '',
       criticalOnly: false,
+      search: '',
     })
   }
 
@@ -54,8 +55,10 @@ export function FilterBar({ filters, onFiltersChange, onShowCritical, normalizeR
       <div className="relative w-64 group">
         <input
           type="text"
-          placeholder="Поиск..."
+          placeholder="Поиск по названию или тегам..."
           className="w-full h-8 pl-8 pr-3 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+          value={filters.search}
+          onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
         />
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
       </div>
@@ -90,6 +93,33 @@ export function FilterBar({ filters, onFiltersChange, onShowCritical, normalizeR
         onChange={(v) => onFiltersChange({ ...filters, condition: v ? Number.parseInt(v) : null })}
         showConditionColors
       />
+
+      <FilterDropdown
+        label="Фауна"
+        value={filters.hasFauna === null ? '' : filters.hasFauna ? 'true' : 'false'}
+        options={[
+          { value: 'true', label: 'Есть' },
+          { value: 'false', label: 'Нет' },
+        ]}
+        onChange={(v) => onFiltersChange({ ...filters, hasFauna: v === '' ? null : v === 'true' })}
+      />
+
+      <div className="flex items-center gap-2 text-xs text-gray-700">
+        <label className="text-gray-600">Паспорт:</label>
+        <input
+          type="date"
+          className="h-8 px-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-xs"
+          value={filters.passportDateFrom}
+          onChange={(e) => onFiltersChange({ ...filters, passportDateFrom: e.target.value })}
+        />
+        <span className="text-gray-400">—</span>
+        <input
+          type="date"
+          className="h-8 px-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-xs"
+          value={filters.passportDateTo}
+          onChange={(e) => onFiltersChange({ ...filters, passportDateTo: e.target.value })}
+        />
+      </div>
 
       <button
         onClick={onShowCritical}

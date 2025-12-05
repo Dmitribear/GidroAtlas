@@ -38,6 +38,23 @@ export interface Filters {
   condition: number | null
   priority: string
   criticalOnly: boolean
+  search: string
 }
 
-export type SortOption = 'dangerous' | 'safe' | 'oldest' | 'newest'
+export type SortOption =
+  | 'priority_desc'
+  | 'priority_asc'
+  | 'condition_desc'
+  | 'condition_asc'
+  | 'passport_date_desc'
+  | 'passport_date_asc'
+  | 'name_asc'
+  | 'name_desc'
+  | 'region_asc'
+  | 'region_desc'
+  | 'resource_type_asc'
+  | 'resource_type_desc'
+  | 'water_type_asc'
+  | 'water_type_desc'
+  | 'fauna_asc'
+  | 'fauna_desc'
