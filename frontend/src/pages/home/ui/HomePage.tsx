@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { Navbar } from '@widgets/landing/Navbar'
 import { Hero } from '@widgets/landing/Hero'
-import { Background3D } from '@widgets/landing/Background3D'
-import { Contacts } from '@widgets/landing/Contacts'
-import { About } from '@widgets/landing/About'
+import { Marquee } from '@widgets/landing/Marquee'
+import { FeaturedWork } from '@widgets/landing/FeaturedWork'
+import { ServicesSection } from '@widgets/landing/ServicesSection'
+import { StatsSection } from '@widgets/landing/StatsSection'
+import { ContactFooter } from '@widgets/landing/ContactFooter'
 import { LoginModal } from '@widgets/landing/LoginModal'
-import { AmbientRays } from '@widgets/landing/AmbientRays'
 import { RegisterModal } from '@widgets/landing/RegisterModal'
-import { getJson } from '@shared/api/http'
-import { postJson } from '@shared/api/http'
+import { getJson, postJson } from '@shared/api/http'
 import { supabase } from '@shared/api/supabaseClient'
+import { useLucide } from '@shared/lib/useLucide'
 
 export const HomePage = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false)
@@ -17,6 +18,8 @@ export const HomePage = () => {
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [userLogin, setUserLogin] = useState<string | null>(null)
   const [authError, setAuthError] = useState<string | null>(null)
+
+  useLucide()
 
   useEffect(() => {
     const syncFromSupabase = async () => {
@@ -27,7 +30,8 @@ export const HomePage = () => {
       const meta = session.user.user_metadata || {}
       const provider = session.user.app_metadata?.provider
       const emailPrefix = session.user.email?.split('@')[0]
-      const oauthLogin = (meta.user_name as string) || (meta.preferred_username as string) || emailPrefix || session.user.id
+      const oauthLogin =
+        (meta.user_name as string) || (meta.preferred_username as string) || emailPrefix || session.user.id
       const syntheticPassword = `${provider}:${session.user.id}`
 
       const token = await ensureBackendToken(oauthLogin, syntheticPassword)
@@ -96,17 +100,16 @@ export const HomePage = () => {
     window.location.assign('/profile')
   }
 
-  return (
-    <div className="relative w-full min-h-screen bg-warm-50 text-gray-900 selection:bg-warm-400 selection:text-gray-900 overflow-x-hidden font-sans">
-      <div className="fixed inset-0 z-0">
-        <Background3D />
-      </div>
-      <div className="pointer-events-none fixed inset-0 z-[1]">
-        <div className="absolute -left-1/3 top-[-50%] h-2/3 w-2/3 bg-[radial-gradient(circle_at_25%_20%,rgba(251,191,36,0.35),transparent_55%)] blur-3xl" />
-        <div className="absolute right-[-25%] bottom-[-10%] h-3/4 w-1/2 bg-[radial-gradient(circle_at_70%_70%,rgba(245,158,11,0.25),transparent_100%)] blur-3xl" />
-      </div>
-      <AmbientRays />
+  const scrollToContact = () => {
+    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
+  }
 
+  const scrollToWork = () => {
+    document.getElementById('work')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  return (
+    <div className="relative w-full min-h-screen bg-white text-slate-900 selection:bg-fuchsia-300 selection:text-fuchsia-900 overflow-x-hidden font-sans">
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar
           onLoginClick={() => setIsLoginOpen(true)}
@@ -114,23 +117,31 @@ export const HomePage = () => {
           onLogout={handleLogout}
           onProfile={handleProfile}
         />
-        {accessToken && (
-          <div className="absolute right-4 top-24 z-20">
-          </div>
-        )}
+
         <main className="flex-grow flex flex-col">
-          <Hero />
-          <About />
+          <Hero onPrimaryCta={scrollToContact} onSecondaryCta={scrollToWork} />
+          <Marquee />
+          <FeaturedWork />
+          <ServicesSection />
           {authError && (
             <div className="max-w-5xl mx-auto px-6">
               <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                Ошибка авторизации: {authError}
+                Authentication error: {authError}
               </div>
             </div>
           )}
-          <Contacts />
+          <StatsSection />
         </main>
       </div>
+
+      {accessToken && userLogin && (
+        <div className="fixed right-4 top-24 z-20 inline-flex items-center gap-2 rounded-full bg-white/90 border border-slate-200 px-4 py-2 shadow-sm">
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-sm font-semibold text-slate-700">Signed in as {userLogin}</span>
+        </div>
+      )}
+
+      <ContactFooter />
 
       <LoginModal
         isOpen={isLoginOpen}
