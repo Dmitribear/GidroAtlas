@@ -1,17 +1,9 @@
 :root {
-  color: #ecf1ff;
-  background-color: #05070f;
-  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #1c1917;
+  background-color: #fffbeb;
+  font-family: 'Ubuntu', 'Segoe UI', system-ui, -apple-system, sans-serif;
   line-height: 1.6;
   font-weight: 400;
-  --bg: #05070f;
-  --bg-strong: #0b1020;
-  --panel: rgba(255, 255, 255, 0.04);
-  --border: rgba(255, 255, 255, 0.08);
-  --muted: #9fb0cc;
-  --accent: #6fe6ff;
-  --accent-strong: #3f80ff;
-  --glow: rgba(111, 230, 255, 0.25);
 }
 
 * {
@@ -21,10 +13,8 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(circle at 20% 20%, rgba(111, 230, 255, 0.12), transparent 30%),
-    radial-gradient(circle at 80% 0%, rgba(63, 128, 255, 0.12), transparent 32%),
-    var(--bg);
-  color: #ecf1ff;
+  background: #fffbeb;
+  color: #1c1917;
 }
 
 #root {
@@ -37,6 +27,6 @@ a {
 }
 
 ::selection {
-  background: rgba(111, 230, 255, 0.35);
-  color: #f7fbff;
+  background: rgba(251, 191, 36, 0.35);
+  color: #1c1917;
 }

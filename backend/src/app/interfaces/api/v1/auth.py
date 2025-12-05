@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.application.auth.use_cases import AuthenticateUser, RegisterUser
-from app.core.deps import get_current_subject, get_user_repository
+from app.core.deps import get_current_identity, get_user_repository
 from app.domain.token import Token
 from app.infrastructure.supabase.repositories import UserRepositorySupabase
 from app.schemas.auth import LoginRequest, RegisterRequest
@@ -25,5 +25,5 @@ async def login(payload: LoginRequest, repo: UserRepositorySupabase = Depends(ge
 
 
 @router.get("/auth/me")
-async def me(subject: str = Depends(get_current_subject)) -> dict:
-  return {"sub": subject}
+async def me(identity: dict = Depends(get_current_identity)) -> dict:
+  return identity

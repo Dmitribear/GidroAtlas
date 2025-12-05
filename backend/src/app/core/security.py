@@ -20,9 +20,15 @@ def verify_password(raw_password: str, hashed_password: str) -> bool:
     return False
 
 
-def create_access_token(subject: str | int, expires_minutes: int | None = None) -> str:
+def create_access_token(
+  subject: str | int,
+  expires_minutes: int | None = None,
+  extra_claims: dict[str, Any] | None = None,
+) -> str:
   settings = get_settings()
   expire_delta = timedelta(minutes=expires_minutes or settings.access_token_exp_minutes)
   expire_at = datetime.now(tz=timezone.utc) + expire_delta
   to_encode: dict[str, Any] = {"sub": str(subject), "exp": expire_at}
+  if extra_claims:
+    to_encode.update(extra_claims)
   return jwt.encode(to_encode, settings.jwt_secret, algorithm=settings.jwt_algorithm)

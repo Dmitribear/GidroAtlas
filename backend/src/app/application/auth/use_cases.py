@@ -30,4 +30,4 @@ class AuthenticateUser:
     if not verify_password(password, user.password_hash):
       raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-    return create_access_token(subject=user.id)
+    return create_access_token(subject=user.login, extra_claims={"uid": user.id})

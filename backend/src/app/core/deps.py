@@ -25,9 +25,9 @@ def get_water_object_repository(
   return WaterObjectRepositorySupabase(client)
 
 
-def get_current_subject(
+def get_current_identity(
   credentials: HTTPAuthorizationCredentials | None = Depends(http_bearer),
-) -> str:
+) -> dict[str, str]:
   if credentials is None:
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credentials missing")
 
@@ -42,4 +42,7 @@ def get_current_subject(
   if subject is None:
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
 
-  return str(subject)
+  identity = {"login": str(subject)}
+  if payload.get("uid"):
+    identity["user_id"] = str(payload["uid"])
+  return identity
