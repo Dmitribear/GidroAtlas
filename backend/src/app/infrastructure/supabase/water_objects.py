@@ -36,13 +36,23 @@ class WaterObjectRepositorySupabase:
     qb = self._client.raw.table(self._table).select("*")
 
     if query.region:
-      qb = qb.eq("region", query.region)
+      qb = qb.ilike("region", f"%{query.region}%")
     if query.resource_type:
       qb = qb.eq("resource_type", query.resource_type)
     if query.water_type:
       qb = qb.eq("water_type", query.water_type)
     if query.fauna is not None:
       qb = qb.eq("fauna", query.fauna)
+    if query.technical_condition is not None:
+      qb = qb.eq("technical_condition", query.technical_condition)
+    if query.condition_min is not None:
+      qb = qb.gte("technical_condition", query.condition_min)
+    if query.priority is not None:
+      qb = qb.eq("priority", query.priority)
+    if query.passport_date_from:
+      qb = qb.gte("passport_date", query.passport_date_from.isoformat())
+    if query.passport_date_to:
+      qb = qb.lte("passport_date", query.passport_date_to.isoformat())
 
     qb = qb.order(query.sort_by, desc=query.sort_dir == "desc")
     end = query.offset + query.limit - 1

@@ -18,7 +18,7 @@ class WaterObjectCreate(BaseModel):
   technical_condition: int = Field(ge=1, le=5)
   latitude: float
   longitude: float
-  pdf_url: HttpUrl | None = None
+  pdf_url: str | HttpUrl | None = None
   priority: int | None = None
 
 
@@ -31,6 +31,11 @@ class WaterObjectQuery(BaseModel):
   resource_type: ResourceType | None = None
   water_type: WaterType | None = None
   fauna: bool | None = None
+  technical_condition: int | None = Field(default=None, ge=1, le=5)
+  condition_min: int | None = Field(default=None, ge=1, le=5)
+  priority: int | None = None
+  passport_date_from: date | None = None
+  passport_date_to: date | None = None
   sort_by: Literal[
     "name", "region", "priority", "technical_condition", "passport_date", "resource_type", "water_type"
   ] = "priority"

@@ -107,7 +107,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogou
             </div>
           )}
           <a
-            href="#services" // dashboard
+            href="/maps" // dashboard
             className="group relative px-6 py-2.5 bg-black text-white rounded-full text-sm font-medium overflow-hidden hover:scale-105 transition-transform"
           >
             <span className="relative z-10">Перейти в панель управления</span>
