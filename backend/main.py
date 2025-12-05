@@ -1,81 +1,49 @@
-from fastapi import Depends, FastAPI
+from __future__ import annotations
+
+from typing import List
+
+import pandas as pd
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
 
-from .model import FEATURE_NAMES, ConditionRiskModel, risk_model
+from backend.config import API_TITLE, CORS_ALLOW_ORIGINS
+from backend.ml_model import RiskModel
+from backend.routes import create_analyze_router
+from backend.visualization import (
+    plot_condition_distribution,
+    plot_passport_age,
+    plot_risk_distribution,
+    plot_by_type,
+)
 
-
-class PredictRequest(BaseModel):
-    """Validated payload describing one hydro asset."""
-
-    technical_condition: int = Field(..., ge=1, le=5)
-    passport_age_years: float = Field(..., ge=0)
-    resource_type: int = Field(..., ge=0, le=2)
-    water_type: int = Field(..., ge=0, le=1)
-    fauna: int = Field(..., ge=0, le=1)
-    region_id: int = Field(..., ge=0)
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "technical_condition": 4,
-                "passport_age_years": 12,
-                "resource_type": 1,
-                "water_type": 0,
-                "fauna": 1,
-                "region_id": 5,
-            }
-        }
-
-    def to_feature_payload(self) -> dict[str, float]:
-        """Helper that keeps the response handler compact."""
-        return self.model_dump()
-
-
-class PredictResponse(BaseModel):
-    """Normalized probability of переход в категории 4–5."""
-
-    risk: float
-
-
-class RiskPredictionService:
-    """Thin wrapper that keeps FastAPI endpoints lean."""
-
-    def __init__(self, model: ConditionRiskModel):
-        self._model = model
-
-    def score(self, request: PredictRequest) -> float:
-        return self._model.predict_risk(request.to_feature_payload())
-
-
-prediction_service = RiskPredictionService(risk_model)
-
-
-def get_prediction_service() -> RiskPredictionService:
-    return prediction_service
-
-
-app = FastAPI(title="Hydro Asset Risk API", version="0.1.0")
-
+app = FastAPI(title=API_TITLE)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=CORS_ALLOW_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-@app.post("/predict", response_model=PredictResponse)
-def predict(
-    request: PredictRequest,
-    service: RiskPredictionService = Depends(get_prediction_service),
-) -> PredictResponse:
-    risk = service.score(request)
-    return PredictResponse(risk=risk)
+risk_model = RiskModel()
+app.include_router(create_analyze_router(risk_model))
 
 
-@app.get("/features")
-def available_features() -> dict:
-    return {"features": FEATURE_NAMES}
+@app.post("/visualize")
+def visualize(data: List[dict]) -> dict:
+    if not data:
+        return {
+            "condition_chart": None,
+            "risk_chart": None,
+            "passport_age_chart": None,
+            "type_chart": None,
+        }
+
+    df = pd.DataFrame(data)
+
+    return {
+        "condition_chart": plot_condition_distribution(df),
+        "risk_chart": plot_risk_distribution(df),
+        "passport_age_chart": plot_passport_age(df),
+        "type_chart": plot_by_type(df),
+    }
 

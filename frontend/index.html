@@ -2,130 +2,168 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hydro Asset Risk MVP</title>
+    <title>GidroAtlas Priority AI</title>
     <style>
       body {
         font-family: Arial, sans-serif;
+        background: #f5f7fb;
         margin: 0;
-        padding: 0;
-        background: #f4f6f8;
-        color: #0f172a;
+        padding: 40px;
+        color: #1f2933;
       }
 
-      .app {
-        max-width: 520px;
-        margin: 40px auto;
-        padding: 32px;
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
         background: #fff;
+        padding: 24px;
         border-radius: 12px;
-        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
       }
 
       h1 {
-        font-size: 1.8rem;
-        margin-bottom: 0.5rem;
-      }
-
-      p {
-        color: #475569;
         margin-top: 0;
       }
 
-      label {
-        display: block;
-        font-weight: 600;
-        margin-top: 18px;
-      }
-
-      input {
-        width: 100%;
-        padding: 10px 12px;
-        margin-top: 6px;
-        border-radius: 8px;
-        border: 1px solid #cbd5f5;
-        font-size: 1rem;
-      }
-
       button {
-        width: 100%;
-        margin-top: 24px;
-        padding: 12px;
+        margin-top: 12px;
+        padding: 10px 18px;
+        border: none;
+        border-radius: 8px;
         background: #2563eb;
         color: #fff;
-        border: none;
-        border-radius: 10px;
-        font-size: 1rem;
         cursor: pointer;
       }
 
-      button:hover {
-        background: #1e3fa3;
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
       }
 
-      .result {
+      select {
+        margin-top: 12px;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #cbd5f5;
+        background: #fff;
+      }
+
+      button:disabled {
+        background: #94a3b8;
+        cursor: not-allowed;
+      }
+
+      .metrics-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 15px;
+        background: #f2f6ff;
+        border-radius: 8px;
+        margin: 20px 0;
+      }
+
+      .metric-item {
+        font-size: 15px;
+      }
+
+      .charts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
         margin-top: 24px;
-        font-size: 1.1rem;
-        font-weight: 600;
+      }
+
+      .charts img {
+        width: 400px;
+        max-width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+        background: #fff;
+        padding: 8px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 24px;
+      }
+
+      th,
+      td {
+        border: 1px solid #e2e8f0;
+        padding: 10px;
+        text-align: left;
+      }
+
+      #message {
+        margin-top: 16px;
+        min-height: 20px;
       }
     </style>
   </head>
   <body>
-    <div class="app">
-      <h1>AI-анализ состояния</h1>
-      <p>Заполни параметры объекта и запусти предсказание.</p>
-      <form id="risk-form">
-        <label for="technical_condition">technical_condition (1–5)</label>
-        <input
-          id="technical_condition"
-          name="technical_condition"
-          type="number"
-          min="1"
-          max="5"
-          required
-        />
-
-        <label for="passport_age_years">passport_age_years</label>
-        <input
-          id="passport_age_years"
-          name="passport_age_years"
-          type="number"
-          min="0"
-          required
-        />
-
-        <label for="resource_type">resource_type (0/1/2)</label>
-        <input
-          id="resource_type"
-          name="resource_type"
-          type="number"
-          min="0"
-          max="2"
-          required
-        />
-
-        <label for="water_type">water_type (0/1)</label>
-        <input
-          id="water_type"
-          name="water_type"
-          type="number"
-          min="0"
-          max="1"
-          required
-        />
-
-        <label for="fauna">fauna (0/1)</label>
-        <input id="fauna" name="fauna" type="number" min="0" max="1" required />
-
-        <label for="region_id">region_id</label>
-        <input id="region_id" name="region_id" type="number" min="0" required />
-
-        <button type="submit">Predict Risk</button>
-      </form>
-
-      <div id="risk-output" class="result">AI Risk Prediction: --%</div>
+    <div class="container">
+      <h1>AI-анализ приоритетов GidroAtlas</h1>
+      <p>Загрузите CSV с объектами водных ресурсов и получите приоритет.</p>
+      <div class="controls">
+        <input type="file" id="csvInput" accept=".csv" />
+        <button id="uploadBtn">Загрузить CSV</button>
+      </div>
+      <label for="sortSelect">Сортировка:</label>
+      <select id="sortSelect">
+        <option value="priority">Приоритет</option>
+        <option value="risk3">Риск через 3 месяца</option>
+        <option value="risk6">Риск через 6 месяцев</option>
+        <option value="risk12">Риск через 12 месяцев</option>
+        <option value="risk24">Риск через 24 месяца</option>
+      </select>
+      <div id="message"></div>
+      <div id="metricsPanel" class="metrics-container" hidden>
+        <div class="metric-item">
+          <strong>Объектов:</strong> <span id="m_total">—</span>
+        </div>
+        <div class="metric-item">
+          <strong>Среднее состояние:</strong>
+          <span id="m_avg_condition">—</span>
+        </div>
+        <div class="metric-item">
+          <strong>Критические:</strong> <span id="m_critical">—</span>
+        </div>
+        <div class="metric-item">
+          <strong>Без паспорта:</strong> <span id="m_no_passport">—</span>
+        </div>
+        <div class="metric-item">
+          <strong>Средний возраст паспорта:</strong>
+          <span id="m_avg_age">—</span>
+        </div>
+      </div>
+      <table id="resultsTable" hidden>
+        <thead>
+          <tr>
+            <th>Объект</th>
+            <th>Состояние</th>
+            <th>Возраст</th>
+            <th>Priority</th>
+            <th>Risk 3m</th>
+            <th>Risk 6m</th>
+            <th>Risk 12m</th>
+            <th>Risk 24m</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <h2>Аналитические диаграммы</h2>
+      <div class="charts">
+        <img id="conditionChart" alt="Распределение состояний" />
+        <img id="riskChart" alt="Распределение рисков" />
+        <img id="passportAgeChart" alt="Возраст паспортов" />
+        <img id="typeChart" alt="Типы водных объектов" />
+      </div>
     </div>
-    <script src="./script.js" defer></script>
+    <script src="script.js"></script>
   </body>
 </html>
 
