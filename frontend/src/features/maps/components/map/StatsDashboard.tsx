@@ -1,15 +1,27 @@
 "use client"
 
-import { AlertTriangle, CheckCircle, Activity, X, Layers } from 'lucide-react'
+import { AlertTriangle, CheckCircle, Activity, X, Layers, Crop } from 'lucide-react'
 import type { WaterObject } from '../../types'
 
 interface StatsDashboardProps {
   objects: WaterObject[]
   totalObjects: number
   onToggleLayers: () => void
+  onSelectArea: () => void
+  onClearArea: () => void
+  hasSelection: boolean
+  isSelecting: boolean
 }
 
-export function StatsDashboard({ objects, totalObjects, onToggleLayers }: StatsDashboardProps) {
+export function StatsDashboard({
+  objects,
+  totalObjects,
+  onToggleLayers,
+  onSelectArea,
+  onClearArea,
+  hasSelection,
+  isSelecting,
+}: StatsDashboardProps) {
   const criticalCount = objects.filter((o) => o.condition >= 4).length
   const goodCount = objects.filter((o) => o.condition <= 2).length
   const avgCondition =
@@ -64,6 +76,15 @@ export function StatsDashboard({ objects, totalObjects, onToggleLayers }: StatsD
       >
         Скрыть слои
         <X className="w-3.5 h-3.5" />
+      </button>
+
+      <button
+        onClick={hasSelection ? onClearArea : onSelectArea}
+        className="h-9 px-3 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-100 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+      >
+        <Crop className="w-4 h-4" />
+        {hasSelection ? 'Сбросить зону' : isSelecting ? 'Выделение...' : 'Выделить зону'}
+        {hasSelection && <X className="w-3 h-3" />}
       </button>
     </div>
   )

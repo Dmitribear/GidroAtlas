@@ -7,10 +7,13 @@ interface NavbarProps {
   userLogin?: string | null
   onLogout: () => void
   onProfile: () => void
+  ctaLabel?: string
+  ctaHref?: string
+  navItems?: NavItem[]
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { label: 'Как это работает', href: '#work' },
+const DEFAULT_NAV_ITEMS: NavItem[] = [
+  { label: 'Главная', href: '#hero' },
   { label: 'Возможности', href: '#services' },
   { label: 'Контакты', href: '#contact' },
 ]
@@ -20,7 +23,15 @@ const navFontStyle: React.CSSProperties = {
   fontWeight: 500,
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogout, onProfile }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  onLoginClick,
+  userLogin,
+  onLogout,
+  onProfile,
+  ctaLabel = 'Войти в панель управления',
+  ctaHref = '/maps',
+  navItems = DEFAULT_NAV_ITEMS,
+}) => {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -46,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogou
         </a>
 
         <div className="hidden md:flex gap-8 items-center">
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <a key={item.label} href={item.href} className="text-sm font-medium hover:text-fuchsia-600 transition-colors">
               {item.label}
             </a>
@@ -107,10 +118,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogou
             </div>
           )}
           <a
-            href="/maps"
+            href={ctaHref}
             className="group relative px-6 py-2.5 bg-black text-white rounded-full text-sm font-medium overflow-hidden hover:scale-105 transition-transform"
           >
-            <span className="relative z-10">Войти в панель управления</span>
+            <span className="relative z-10">{ctaLabel}</span>
             <div className="absolute inset-0 bg-fuchsia-500 transform scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-300 ease-out"></div>
           </a>
         </div>
@@ -130,7 +141,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogou
 
       {mobileMenuOpen && (
         <div className="absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-slate-100 p-6 md:hidden flex flex-col gap-4 shadow-xl">
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <a
               key={item.label}
               href={item.href}
@@ -175,11 +186,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick, userLogin, onLogou
             </div>
           )}
           <a
-            href="#contact"
+            href={ctaHref}
             className="w-full inline-flex items-center justify-center px-4 py-3 rounded-xl bg-black text-white font-medium hover:bg-fuchsia-600 transition"
             onClick={() => setMobileMenuOpen(false)}
           >
-            Let&apos;s Talk
+            {ctaLabel}
           </a>
         </div>
       )}

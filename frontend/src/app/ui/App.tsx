@@ -1,6 +1,7 @@
 import { HomePage } from '@pages/home'
 import { ProfilePage } from '@pages/profile'
 import { MapsPage } from '@pages/maps'
+import { ReportsPage } from '@pages/reports'
 
 export const App = () => {
   const path = window.location.pathname
@@ -9,6 +10,9 @@ export const App = () => {
   }
   if (path.startsWith('/profile')) {
     return <ProfilePage />
+  }
+  if (path.startsWith('/reports')) {
+    return <ReportsPage />
   }
   return <HomePage />
 }

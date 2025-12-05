@@ -18,6 +18,8 @@ import { LoginModal } from '@widgets/landing/LoginModal'
 import { RegisterModal } from '@widgets/landing/RegisterModal'
 import { normalizeRegionName } from '../constants'
 
+type Bounds = { south: number; west: number; north: number; east: number }
+
 export function GidroAtlasMap() {
   const [objects, setObjects] = useState<WaterObject[]>([])
   const [loadingObjects, setLoadingObjects] = useState(true)
@@ -42,6 +44,8 @@ export function GidroAtlasMap() {
   })
   const [showLogin, setShowLogin] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
+  const [selectionBounds, setSelectionBounds] = useState<Bounds | null>(null)
+  const [isSelectingArea, setIsSelectingArea] = useState(false)
 
   useEffect(() => {
     const storedToken = localStorage.getItem('access_token')
@@ -60,9 +64,36 @@ export function GidroAtlasMap() {
     sync().catch(() => {})
   }, [])
 
-  const filteredObjects = useMemo(() => objects, [objects])
+  const filteredObjects = useMemo(() => {
+    if (!selectionBounds) return objects
+    return objects.filter((obj) => {
+      const lat = Number(obj.coordinates.lat)
+      const lng = Number(obj.coordinates.lng)
+      if (Number.isNaN(lat) || Number.isNaN(lng)) return false
+      return (
+        lat >= selectionBounds.south &&
+        lat <= selectionBounds.north &&
+        lng >= selectionBounds.west &&
+        lng <= selectionBounds.east
+      )
+    })
+  }, [objects, selectionBounds])
 
   const [csvMarkers, setCsvMarkers] = useState<any[]>([])
+  const filteredCsvMarkers = useMemo(() => {
+    if (!selectionBounds) return csvMarkers
+    return csvMarkers.filter((obj) => {
+      const lat = Number(obj.latitude ?? obj.lat)
+      const lng = Number(obj.longitude ?? obj.lng)
+      if (Number.isNaN(lat) || Number.isNaN(lng)) return false
+      return (
+        lat >= selectionBounds.south &&
+        lat <= selectionBounds.north &&
+        lng >= selectionBounds.west &&
+        lng <= selectionBounds.east
+      )
+    })
+  }, [csvMarkers, selectionBounds])
   const [uploadStatus, setUploadStatus] = useState<string | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
@@ -125,9 +156,9 @@ export function GidroAtlasMap() {
     if (typeof window === 'undefined') return
     const map = (window as any)._leafletMap
     if (!map) return
-    const combinedMarkers = [...normalizeForMarkers(filteredObjects), ...csvMarkers]
-    renderMarkers(map, combinedMarkers)
-  }, [csvMarkers, filteredObjects])
+    const combinedMarkers = [...normalizeForMarkers(filteredObjects), ...filteredCsvMarkers]
+    renderMarkers(map, combinedMarkers, selectedObject?.id)
+  }, [filteredCsvMarkers, filteredObjects, selectedObject?.id])
 
   useEffect(() => {
     updateLeafletMarkers()
@@ -138,6 +169,71 @@ export function GidroAtlasMap() {
     window.addEventListener('leaflet-map-ready', handler)
     return () => window.removeEventListener('leaflet-map-ready', handler)
   }, [updateLeafletMarkers])
+
+  // Rectangle selection mode
+  useEffect(() => {
+    if (!isSelectingArea) return
+    if (typeof window === 'undefined' || !(window as any).L) return
+    const map = (window as any)._leafletMap
+    if (!map) return
+
+    const L = (window as any).L
+    let rect: any = null
+    let start: any = null
+
+    const onMouseMove = (e: any) => {
+      if (!start) return
+      const bounds = L.latLngBounds(start, e.latlng)
+      if (rect) {
+        rect.setBounds(bounds)
+      } else {
+        rect = L.rectangle(bounds, { color: '#2563eb', weight: 1, fillOpacity: 0.08 })
+        rect.addTo(map)
+      }
+    }
+
+    const cleanup = () => {
+      if (rect) {
+        map.removeLayer(rect)
+        rect = null
+      }
+      map.off('mousemove', onMouseMove)
+      map.dragging.enable()
+      map.boxZoom?.enable?.()
+      map.doubleClickZoom?.enable?.()
+      start = null
+    }
+
+    const onMouseUp = (e: any) => {
+      if (!start) return
+      const bounds = L.latLngBounds(start, e.latlng)
+      setSelectionBounds({
+        south: bounds.getSouth(),
+        west: bounds.getWest(),
+        north: bounds.getNorth(),
+        east: bounds.getEast(),
+      })
+      map.fitBounds(bounds, { padding: [20, 20] })
+      cleanup()
+      setIsSelectingArea(false)
+    }
+
+    const onMouseDown = (e: any) => {
+      start = e.latlng
+      map.dragging.disable()
+      map.boxZoom?.disable?.()
+      map.doubleClickZoom?.disable?.()
+      map.on('mousemove', onMouseMove)
+      map.once('mouseup', onMouseUp)
+    }
+
+    map.on('mousedown', onMouseDown)
+
+    return () => {
+      cleanup()
+      map.off('mousedown', onMouseDown)
+    }
+  }, [isSelectingArea])
 
   const handleCsvFile = async (file: File) => {
     setIsUploading(true)
@@ -199,6 +295,12 @@ export function GidroAtlasMap() {
         userLogin={userLogin}
         onLogout={handleLogout}
         onProfile={() => (window.location.href = '/profile')}
+        ctaLabel="На главную"
+        ctaHref="/"
+        navItems={[
+          { label: 'В профиль', href: '/profile' },
+          { label: 'Отчёты', href: '/reports' },
+        ]}
       />
 
       <div className="pt-20 flex flex-col h-full">
@@ -240,6 +342,16 @@ export function GidroAtlasMap() {
                 objects={filteredObjects}
                 totalObjects={objects.length}
                 onToggleLayers={() => setShowLayers(false)}
+                onSelectArea={() => {
+                  setSelectionBounds(null)
+                  setIsSelectingArea(true)
+                }}
+                onClearArea={() => {
+                  setSelectionBounds(null)
+                  setIsSelectingArea(false)
+                }}
+                hasSelection={!!selectionBounds}
+                isSelecting={isSelectingArea}
               />
             ) : (
               <button

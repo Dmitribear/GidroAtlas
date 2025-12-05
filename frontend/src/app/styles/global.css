@@ -183,3 +183,17 @@ a {
   text-decoration: underline;
   font-weight: 500;
 }
+
+/* Leaflet popup reset for custom cards */
+.leaflet-popup-content-wrapper {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+}
+.leaflet-popup-content {
+  margin: 0;
+}
+.leaflet-popup-tip {
+  display: none;
+}
