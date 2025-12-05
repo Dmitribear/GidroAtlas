@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GidroAtlas AI Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="bg-slate-50 text-slate-900">
+    <div class="min-h-screen">
+      <header class="bg-white shadow-sm">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div>
+            <p class="text-xs uppercase tracking-widest text-slate-500">GidroAtlas</p>
+            <h1 class="text-2xl font-bold text-slate-900">AI Risk Dashboard</h1>
+          </div>
+          <div class="text-right">
+            <p class="text-sm text-slate-500">Экспертный анализ гидрообъектов</p>
+            <p class="text-xs text-slate-400">GPT-4.1 mini + визуальная аналитика</p>
+          </div>
+        </div>
+      </header>
+
+      <main class="max-w-6xl mx-auto px-6 py-8 space-y-8">
+        <section class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+          <h2 class="text-lg font-semibold text-slate-900">Загрузка данных</h2>
+          <p class="text-sm text-slate-500">
+            Загрузите CSV или вставьте JSON массив объектов. Поля: name, region, resource_type, technical_condition,
+            passport_age_years, latitude, longitude, pdf_url.
+          </p>
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium text-slate-600">CSV файл</label>
+              <input id="csvInput" type="file" accept=".csv" class="input-file" />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium text-slate-600">JSON (опционально)</label>
+              <textarea
+                id="jsonInput"
+                rows="4"
+                class="textarea"
+                placeholder='[{"name": "..."}]'
+              ></textarea>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-4 items-center">
+            <button id="analyzeBtn" class="btn-primary">Анализировать</button>
+            <span id="statusText" class="text-sm text-slate-500"></span>
+          </div>
+        </section>
+
+        <section id="metricsPanel" class="grid gap-4 md:grid-cols-4"></section>
+
+        <section class="bg-white rounded-2xl shadow-sm p-6 space-y-6">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-slate-900">Графики</h2>
+            <div class="flex gap-2">
+              <button class="tab-btn active" data-tab="graphs">Графики</button>
+              <button class="tab-btn" data-tab="table">Таблица</button>
+            </div>
+          </div>
+          <div id="graphsTab" class="tab-content grid gap-6 md:grid-cols-2">
+            <div class="chart-card">
+              <h3>Состояние объектов</h3>
+              <img id="conditionChart" alt="Condition chart" />
+            </div>
+            <div class="chart-card">
+              <h3>Возраст паспортов</h3>
+              <img id="ageChart" alt="Age chart" />
+            </div>
+            <div class="chart-card">
+              <h3>Риск (12 месяцев)</h3>
+              <img id="riskChart" alt="Risk chart" />
+            </div>
+            <div class="chart-card">
+              <h3>Типы ресурсов</h3>
+              <img id="typeChart" alt="Resource chart" />
+            </div>
+            <div class="chart-card">
+              <h3>Boxplot</h3>
+              <img id="boxChart" alt="Boxplot" />
+            </div>
+            <div class="chart-card">
+              <h3>Корреляции</h3>
+              <img id="heatmapChart" alt="Heatmap" />
+            </div>
+          </div>
+          <div id="tableTab" class="tab-content hidden">
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-sm" id="resultsTable">
+                <thead>
+                  <tr>
+                    <th>Объект</th>
+                    <th>Регион</th>
+                    <th>Тип</th>
+                    <th>Состояние</th>
+                    <th>Приоритет</th>
+                    <th>Риск 12м</th>
+                    <th>Рекомендация</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="dashboard.js"></script>
+  </body>
+</html>
+
