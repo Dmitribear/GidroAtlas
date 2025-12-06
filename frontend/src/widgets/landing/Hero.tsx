@@ -39,13 +39,6 @@ export const Hero: React.FC<HeroProps> = ({ onPrimaryCta, onSecondaryCta }) => {
             Начать использование
             <i data-lucide="arrow-right" className="w-5 h-5" />
           </button>
-          <button
-            className="px-8 py-4 bg-white border border-slate-200 text-slate-900 rounded-full text-lg font-medium hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center gap-2"
-            onClick={onSecondaryCta}
-          >
-            <i data-lucide="play-circle" className="w-5 h-5 text-slate-400" />
-            Демонстрация
-          </button>
         </div>
       </div>
     </header>

@@ -93,12 +93,8 @@ export const HomePage = () => {
     window.location.assign('/profile')
   }
 
-  const scrollToContact = () => {
-    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
-  }
-
-  const scrollToWork = () => {
-    document.getElementById('work')?.scrollIntoView({ behavior: 'smooth' })
+  const goToMaps = () => {
+    window.location.assign('/maps')
   }
 
   return (
@@ -112,7 +108,7 @@ export const HomePage = () => {
         />
 
         <main className="flex-grow flex flex-col">
-          <Hero onPrimaryCta={scrollToContact} onSecondaryCta={scrollToWork} />
+          <Hero onPrimaryCta={goToMaps} onSecondaryCta={goToMaps} />
           <Marquee />
           <ServicesSection />
           <StatsSection />
