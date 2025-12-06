@@ -49,7 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           scrolled ? 'shadow-md' : ''
         }`}
       >
-        <a href="#hero" className="text-2xl font-medium tracking-tighter flex items-center gap-2">
+        <a href="/" className="text-2xl font-medium tracking-tighter flex items-center gap-2">
           <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white text-sm font-bold">
             G
           </div>

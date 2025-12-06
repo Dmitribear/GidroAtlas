@@ -9,7 +9,7 @@ interface ObjectCardProps {
   onClose: () => void
   onCompare: () => void
   isInCompare: boolean
-  canViewPassport?: boolean
+  canViewPassport: boolean
 }
 
 function getConditionStyles(condition: number) {
@@ -36,7 +36,7 @@ function ResourceTypeIcon({ type, className = '' }: { type: string; className?: 
   }
 }
 
-export function ObjectCard({ object, onClose, onCompare, isInCompare, canViewPassport = true }: ObjectCardProps) {
+export function ObjectCard({ object, onClose, onCompare, isInCompare, canViewPassport }: ObjectCardProps) {
   const conditionStyles = getConditionStyles(object.condition)
 
   return (
@@ -73,9 +73,7 @@ export function ObjectCard({ object, onClose, onCompare, isInCompare, canViewPas
             >
               {object.condition}
             </span>
-            <span className={`text-sm font-semibold ${conditionStyles.text}`}>
-              {getConditionLabel(object.condition)}
-            </span>
+            <span className={`text-sm font-semibold ${conditionStyles.text}`}>{getConditionLabel(object.condition)}</span>
           </div>
           <h3 className="text-base font-bold text-gray-900">{object.name}</h3>
           <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
@@ -88,7 +86,7 @@ export function ObjectCard({ object, onClose, onCompare, isInCompare, canViewPas
           <div className="flex items-center gap-2 p-2 bg-cyan-50 rounded-lg">
             <Droplets className="w-4 h-4 text-cyan-600" />
             <div>
-              <p className="text-[10px] text-gray-500">Вода</p>
+              <p className="text-[10px] text-gray-500">Вид воды</p>
               <p className="text-xs font-medium text-gray-900">
                 {object.waterType === 'fresh' ? 'Пресная' : 'Солёная'}
               </p>
@@ -113,26 +111,24 @@ export function ObjectCard({ object, onClose, onCompare, isInCompare, canViewPas
             <div>
               <p className="text-[10px] text-gray-500">Координаты</p>
               <p className="text-xs font-medium text-gray-900">
-                {object.coordinates.lat.toFixed(1)}°, {object.coordinates.lng.toFixed(1)}°
+                {object.coordinates.lat.toFixed(1)}, {object.coordinates.lng.toFixed(1)}
               </p>
             </div>
           </div>
         </div>
 
         <div className="flex gap-2">
-          {canViewPassport && (
-            <a
-              href={object.pdfUrl || '#'}
-              target="_blank"
-              rel="noopener"
-              className={`flex-1 h-9 flex items-center justify-center gap-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors ${
-                object.pdfUrl ? '' : 'opacity-60 pointer-events-none'
-              }`}
-            >
-              <FileText className="w-3.5 h-3.5" />
-              Паспорт PDF
-            </a>
-          )}
+          <button
+            disabled={!object.pdfUrl || !canViewPassport}
+            onClick={() => {
+              if (!object.pdfUrl || !canViewPassport) return
+              window.open(object.pdfUrl, '_blank', 'noopener,noreferrer')
+            }}
+            className="flex-1 h-9 flex items-center justify-center gap-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            Паспорт PDF
+          </button>
           <button
             onClick={onCompare}
             className={`h-9 w-9 flex items-center justify-center border rounded-lg transition-colors ${

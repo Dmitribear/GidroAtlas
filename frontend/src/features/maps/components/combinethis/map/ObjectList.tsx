@@ -1,27 +1,9 @@
 "use client"
 
-import { Heart, GitCompare, ChevronDown, Droplets, Waves, Database, Fish } from 'lucide-react'
+import { Heart, GitCompare, ChevronDown, Droplets, Waves, Database, Fish, Pencil } from 'lucide-react'
 import type { WaterObject, SortOption } from '../../types'
 import { getResourceTypeLabel } from '../../utils'
 import { useState, useRef, useEffect } from 'react'
-
-const EditIcon = ({ className = '' }: { className?: string }) => (
-  <svg
-    className={className}
-    width="16"
-    height="16"
-    viewBox="0 0 16 16"
-    xmlns="http://www.w3.org/2000/svg"
-    aria-hidden="true"
-  >
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M11.442 1.707a1.21 1.21 0 011.71 0l1.142 1.14a1.21 1.21 0 010 1.711l-.856.856-2.852-2.852.856-.855zM9.31 3.839L3.164 9.985l-.91 3.714 3.761-.863 6.146-6.146L9.31 3.84z"
-      fill="currentColor"
-    ></path>
-  </svg>
-)
 
 interface ObjectListProps {
   objects: WaterObject[]
@@ -37,11 +19,12 @@ interface ObjectListProps {
   hasMore?: boolean
   onLoadMore?: () => void
   isLoading?: boolean
-  onOpenEditor?: () => void
-  isExpert?: boolean
+  onOpenEditor: () => void
+  isExpert: boolean
 }
 
 const sortOptions: { value: SortOption; label: string }[] = [
+<<<<<<< HEAD
   { value: 'priority_desc', label: 'Приоритет: высокий → низкий' },
   { value: 'priority_asc', label: 'Приоритет: низкий → высокий' },
   { value: 'condition_desc', label: 'Состояние: 5 → 1' },
@@ -58,6 +41,12 @@ const sortOptions: { value: SortOption; label: string }[] = [
   { value: 'water_type_desc', label: 'Тип воды Я → A' },
   { value: 'fauna_desc', label: 'Фауна: есть → нет' },
   { value: 'fauna_asc', label: 'Фауна: нет → есть' },
+=======
+  { value: 'dangerous', label: 'Опасные сначала' },
+  { value: 'safe', label: 'Безопасные сначала' },
+  { value: 'oldest', label: 'Старые паспорта' },
+  { value: 'newest', label: 'Новые паспорта' },
+>>>>>>> b7d5fce (redaction and profile)
 ]
 
 export function ObjectList({
@@ -75,7 +64,7 @@ export function ObjectList({
   onLoadMore,
   isLoading = false,
   onOpenEditor,
-  isExpert = false,
+  isExpert,
 }: ObjectListProps) {
   const [showSortMenu, setShowSortMenu] = useState(false)
   const sortRef = useRef<HTMLDivElement>(null)
@@ -93,24 +82,30 @@ export function ObjectList({
   return (
     <div className="w-96 border-l border-gray-200 flex flex-col bg-white shrink-0 relative">
       <div className="p-3 border-b border-gray-100">
+<<<<<<< HEAD
+        <h2 className="text-base font-semibold text-gray-900">Список объектов</h2>
+        <div className="flex items-center justify-between mt-1">
+          <p className="text-xs text-gray-500">{objects.length} найдено</p>
+=======
         <div className="flex items-center justify-between gap-2">
           <div>
             <h2 className="text-base font-semibold text-gray-900">Список объектов</h2>
-            <p className="text-xs text-gray-500">{objects.length} найдено</p>
+            <p className="text-xs text-gray-500">{objects.length} объектов</p>
           </div>
+>>>>>>> b7d5fce (redaction and profile)
 
-          <div className="flex items-center gap-2" ref={sortRef}>
+          <div className="flex items-center gap-2">
             {isExpert && (
               <button
                 onClick={onOpenEditor}
                 className="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:text-blue-700 hover:border-blue-400 transition-colors"
-                title="Редактировать объект"
+                title="Редактировать"
               >
-                <EditIcon className="w-4 h-4" />
+                <Pencil className="w-4 h-4" />
               </button>
             )}
 
-            <div className="relative">
+            <div className="relative" ref={sortRef}>
               <button
                 onClick={() => setShowSortMenu(!showSortMenu)}
                 className="text-xs text-gray-600 hover:text-gray-900 flex items-center gap-1"
@@ -119,7 +114,7 @@ export function ObjectList({
                 <ChevronDown className="w-3 h-3" />
               </button>
               {showSortMenu && (
-                <div className="absolute top-full right-0 mt-1 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1">
+                <div className="absolute top-full right-0 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1">
                   {sortOptions.map((opt) => (
                     <button
                       key={opt.value}
@@ -271,10 +266,17 @@ function ObjectListCard({
         <p className="text-[10px] text-gray-500 truncate">{object.region}</p>
         <div className="flex items-center gap-2 mt-1">
           <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium text-white ${conditionBgColor}`}>
+<<<<<<< HEAD
             {object.condition <= 2 ? 'Хорошее' : object.condition <= 3 ? 'Удовлетворительное' : 'Аварийное'}
           </span>
           <span className="text-[10px] text-gray-400">
             {object.waterType === 'fresh' ? 'Пресная' : 'Непресная'}
+=======
+            {object.condition <= 2 ? 'Хорошее' : object.condition <= 3 ? 'Удовлетворительное' : 'Плохое'}
+          </span>
+          <span className="text-[10px] text-gray-400">
+            {object.waterType === 'fresh' ? 'Пресная вода' : 'Солёная вода'}
+>>>>>>> b7d5fce (redaction and profile)
           </span>
         </div>
       </div>

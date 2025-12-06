@@ -93,14 +93,15 @@ export async function fetchWaterObjects(
   pageSize = 50,
 ): Promise<{ data: WaterObject[]; hasMore: boolean; error?: string }> {
   const params = new URLSearchParams()
-  params.set('limit', String(pageSize + 1)) // берем на один больше, чтобы понять есть ли следующая страница
+  const limitValue = Math.min(pageSize + 1, 200) // API ограничивает limit <= 200
+  params.set('limit', String(limitValue))
   params.set('offset', String(page * pageSize))
 
   if (filters.region) params.set('region', filters.region)
   if (filters.resourceType) params.set('resource_type', filters.resourceType)
   if (filters.waterType) params.set('water_type', WATER_TYPE_TO_API[filters.waterType] ?? filters.waterType)
   if (filters.hasFauna !== null) params.set('fauna', filters.hasFauna ? 'true' : 'false')
-  if (filters.condition !== null) params.set('technical_condition', String(filters.condition))
+  if (filters.condition.length === 1) params.set('technical_condition', String(filters.condition[0]))
   if (filters.criticalOnly) params.set('condition_min', '4')
   if (filters.priority) {
     const mapped = PRIORITY_TO_API[filters.priority]

@@ -22,9 +22,9 @@ import { supabase } from '@shared/api/supabaseClient'
 type Bounds = { south: number; west: number; north: number; east: number }
 type UserRole = 'guest' | 'expert'
 
-const PAGE_SIZE = 10
-const API_LIMIT = 199
 const PRIORITY_TO_NUMBER: Record<string, number> = { high: 3, medium: 2, low: 1 }
+
+type Bounds = { south: number; west: number; north: number; east: number }
 
 export function GidroAtlasMap() {
   const [objects, setObjects] = useState<WaterObject[]>([])
@@ -37,7 +37,7 @@ export function GidroAtlasMap() {
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [compareObjects, setCompareObjects] = useState<WaterObject[]>([])
   const [showCompare, setShowCompare] = useState(false)
-  const [sortBy, setSortBy] = useState<SortOption>('priority_desc')
+  const [sortBy, setSortBy] = useState<SortOption>('dangerous')
   const [filters, setFilters] = useState<Filters>({
     region: '',
     resourceType: '',
@@ -45,7 +45,7 @@ export function GidroAtlasMap() {
     hasFauna: null,
     passportDateFrom: '',
     passportDateTo: '',
-    condition: [],
+    condition: null,
     priority: '',
     criticalOnly: false,
     search: '',
@@ -54,35 +54,25 @@ export function GidroAtlasMap() {
   const [showRegister, setShowRegister] = useState(false)
   const [selectionBounds, setSelectionBounds] = useState<Bounds | null>(null)
   const [isSelectingArea, setIsSelectingArea] = useState(false)
+<<<<<<< HEAD
+=======
+
+  const [csvMarkers, setCsvMarkers] = useState<any[]>([])
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [page, setPage] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
+  const [showLayers, setShowLayers] = useState(true)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+
   const [showEditor, setShowEditor] = useState(false)
   const [editorTarget, setEditorTarget] = useState<WaterObject | null>(null)
   const [editorCondition, setEditorCondition] = useState<number>(3)
   const [editorPriority, setEditorPriority] = useState<WaterObject['priority']>('medium')
   const [isSavingEdit, setIsSavingEdit] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
-
-  const [csvMarkers, setCsvMarkers] = useState<any[]>([])
-  const filteredCsvMarkers = useMemo(() => {
-    if (!selectionBounds) return csvMarkers
-    return csvMarkers.filter((obj) => {
-      const lat = Number(obj.latitude ?? obj.lat)
-      const lng = Number(obj.longitude ?? obj.lng)
-      if (Number.isNaN(lat) || Number.isNaN(lng)) return false
-      return (
-        lat >= selectionBounds.south &&
-        lat <= selectionBounds.north &&
-        lng >= selectionBounds.west &&
-        lng <= selectionBounds.east
-      )
-    })
-  }, [csvMarkers, selectionBounds])
-  const [uploadStatus, setUploadStatus] = useState<string | null>(null)
-  const [uploadError, setUploadError] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const [showLayers, setShowLayers] = useState(true)
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
   const isExpert = userRole === 'expert'
 
@@ -93,53 +83,32 @@ export function GidroAtlasMap() {
     }
     const { data, error } = await supabase.from('users').select('role').eq('login', login).single()
     if (error) {
-      // keep current role on error
+      setUserRole('guest')
       return
     }
     const roleValue = (data as { role?: string } | null)?.role
-    const nextRole = roleValue === 'expert' ? 'expert' : 'guest'
-    setUserRole(nextRole)
-    localStorage.setItem('user_role', nextRole)
+    setUserRole(roleValue === 'expert' ? 'expert' : 'guest')
   }, [])
+>>>>>>> b7d5fce (redaction and profile)
 
   useEffect(() => {
     const storedToken = localStorage.getItem('access_token')
     const storedLogin = localStorage.getItem('user_login')
-    const storedRole = localStorage.getItem('user_role') as UserRole | null
-    if (storedRole === 'expert' || storedRole === 'guest') {
-      setUserRole(storedRole)
-    }
     setToken(storedToken)
     setUserLogin(storedLogin)
 
     const sync = async () => {
       if (!storedToken) return
-      const res = await getJson<{ login: string; role?: string }>('/auth/me', storedToken)
+      const res = await getJson<{ login: string }>('/auth/me', storedToken)
       if ('data' in res && res.data?.login) {
         setUserLogin(res.data.login)
         localStorage.setItem('user_login', res.data.login)
-        const roleFromApi = res.data.role as UserRole | undefined
-        if (roleFromApi === 'expert' || roleFromApi === 'guest') {
-          setUserRole(roleFromApi)
-          localStorage.setItem('user_role', roleFromApi)
-        } else {
-          fetchRole(res.data.login).catch(() => {
-            if (userRole === 'guest') {
-              setUserRole('expert') // fallback: treat authenticated as expert if role unknown
-              localStorage.setItem('user_role', 'expert')
-            }
-          })
-        }
+        fetchRole(res.data.login).catch(() => setUserRole('guest'))
       }
     }
     sync().catch(() => {})
-    if (storedLogin && !storedRole) {
-      fetchRole(storedLogin).catch(() => {
-        if (storedToken) {
-          setUserRole('expert')
-          localStorage.setItem('user_role', 'expert')
-        }
-      })
+    if (storedLogin) {
+      fetchRole(storedLogin).catch(() => setUserRole('guest'))
     }
   }, [fetchRole])
 
@@ -161,14 +130,21 @@ export function GidroAtlasMap() {
     if (filters.search.trim()) {
       const q = filters.search.trim().toLowerCase()
       result = result.filter((obj) => {
+<<<<<<< HEAD
+        const haystack = [
+          obj.name,
+          obj.region,
+          obj.resourceType,
+          obj.waterType,
+          obj.pdfUrl || '',
+        ]
+=======
         const haystack = [obj.name, obj.region, obj.resourceType, obj.waterType, obj.pdfUrl || '']
+>>>>>>> b7d5fce (redaction and profile)
           .join(' ')
           .toLowerCase()
         return haystack.includes(q)
       })
-    }
-    if (filters.condition.length > 0) {
-      result = result.filter((o) => filters.condition.includes(Number(o.condition)))
     }
     if (filters.hasFauna !== null) {
       result = result.filter((o) => o.hasFauna === filters.hasFauna)
@@ -180,28 +156,62 @@ export function GidroAtlasMap() {
       result = result.filter((o) => o.passportDate <= filters.passportDateTo)
     }
     return result
-  }, [objects, selectionBounds, filters])
+  }, [objects, selectionBounds, filters.search, filters.hasFauna, filters.passportDateFrom, filters.passportDateTo])
 
-  const loadObjects = useCallback(async () => {
-    setLoadingObjects(true)
-    setFetchError(null)
-    const result = await fetchWaterObjects(filters, sortBy, token, 0, API_LIMIT)
-    if (result.error) {
-      setFetchError(result.error)
-      setObjects(fallbackObjects)
-    } else {
-      const data = result.data.length ? result.data : fallbackObjects
-      setObjects(data)
-    }
-    setLoadingObjects(false)
-  }, [filters, sortBy, token])
+<<<<<<< HEAD
+  const [csvMarkers, setCsvMarkers] = useState<any[]>([])
+=======
+>>>>>>> b7d5fce (redaction and profile)
+  const filteredCsvMarkers = useMemo(() => {
+    if (!selectionBounds) return csvMarkers
+    return csvMarkers.filter((obj) => {
+      const lat = Number(obj.latitude ?? obj.lat)
+      const lng = Number(obj.longitude ?? obj.lng)
+      if (Number.isNaN(lat) || Number.isNaN(lng)) return false
+      return (
+        lat >= selectionBounds.south &&
+        lat <= selectionBounds.north &&
+        lng >= selectionBounds.west &&
+        lng <= selectionBounds.east
+      )
+    })
+  }, [csvMarkers, selectionBounds])
+<<<<<<< HEAD
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [page, setPage] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
+  const [showLayers, setShowLayers] = useState(true)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+=======
+>>>>>>> b7d5fce (redaction and profile)
 
-  // debounce loading
+  const loadObjects = useCallback(
+    async (nextPage = 0, append = false) => {
+      setLoadingObjects(true)
+      setFetchError(null)
+      const result = await fetchWaterObjects(filters, sortBy, token, nextPage, 50)
+      if (result.error) {
+        setFetchError(result.error)
+        setObjects(fallbackObjects)
+        setHasMore(false)
+      } else {
+        setHasMore(result.hasMore)
+        const data = result.data.length ? result.data : fallbackObjects
+        setObjects((prev) => (append ? [...prev, ...data] : data))
+      }
+      setLoadingObjects(false)
+    },
+    [filters, sortBy, token],
+  )
+
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      setVisibleCount(PAGE_SIZE)
-      loadObjects().catch(() => {
+      setPage(0)
+      loadObjects(0, false).catch(() => {
         setFetchError('Не удалось загрузить объекты.')
         setObjects(fallbackObjects)
         setLoadingObjects(false)
@@ -331,9 +341,10 @@ export function GidroAtlasMap() {
       } else {
         setCsvMarkers(normalizeForMarkers(result.items))
         setUploadStatus(`Импортировано ${result.inserted}, пропущено ${result.skipped}`)
-        loadObjects().catch(() => {})
+        loadObjects(page, false).catch(() => {})
       }
     } catch (error) {
+      console.error(error)
       setUploadError((error as Error).message || 'Не удалось загрузить CSV.')
       setCsvMarkers([])
     } finally {
@@ -358,10 +369,12 @@ export function GidroAtlasMap() {
   const handleLogout = () => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('user_login')
-    localStorage.removeItem('user_role')
     setToken(null)
     setUserLogin(null)
+<<<<<<< HEAD
+=======
     setUserRole('guest')
+>>>>>>> b7d5fce (redaction and profile)
   }
 
   const handleAuthSuccess = (nextToken: string, login: string) => {
@@ -371,8 +384,13 @@ export function GidroAtlasMap() {
     localStorage.setItem('user_login', login)
     setShowLogin(false)
     setShowRegister(false)
+<<<<<<< HEAD
+    loadObjects(0, false).catch(() => {})
+  }
+
+=======
     fetchRole(login).catch(() => setUserRole('guest'))
-    loadObjects().catch(() => {})
+    loadObjects(0, false).catch(() => {})
   }
 
   const openEditor = () => {
@@ -403,9 +421,7 @@ export function GidroAtlasMap() {
 
     setObjects((prev) =>
       prev.map((o) =>
-        o.id === editorTarget.id
-          ? { ...o, condition: editorCondition as WaterObject['condition'], priority: editorPriority }
-          : o,
+        o.id === editorTarget.id ? { ...o, condition: editorCondition as WaterObject['condition'], priority: editorPriority } : o,
       ),
     )
     setSelectedObject((prev) =>
@@ -417,6 +433,7 @@ export function GidroAtlasMap() {
     setIsSavingEdit(false)
   }
 
+>>>>>>> b7d5fce (redaction and profile)
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <Navbar
@@ -424,31 +441,43 @@ export function GidroAtlasMap() {
         userLogin={userLogin}
         onLogout={handleLogout}
         onProfile={() => (window.location.href = '/profile')}
+<<<<<<< HEAD
         ctaLabel="На главную"
         ctaHref="/"
         navItems={[
           { label: 'В профиль', href: '/profile' },
           { label: 'Отчёты', href: '/reports' },
         ]}
+=======
+>>>>>>> b7d5fce (redaction and profile)
       />
 
       <div className="pt-20 flex flex-col h-full">
         <div className="px-4 pb-2 flex items-center gap-3 text-xs text-gray-700">
           <button
             onClick={requestCsvUpload}
+<<<<<<< HEAD
             className="h-8 px-3 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-xs font-medium transition-colors"
+            disabled={isUploading}
+=======
+            className="h-8 px-3 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-xs font-medium transition-colors disabled:opacity-60"
             disabled={isUploading || !isExpert}
+>>>>>>> b7d5fce (redaction and profile)
           >
             {isUploading ? 'Импортируем...' : 'Импорт CSV'}
           </button>
           <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleFileChange} />
+<<<<<<< HEAD
           {loadingObjects && <div className="text-gray-500">Загружаем объекты...</div>}
+=======
+          {loadingObjects && <div className="text-gray-500">Загрузка объектов...</div>}
+>>>>>>> b7d5fce (redaction and profile)
           {uploadStatus && !uploadError && <div className="text-gray-600">{uploadStatus}</div>}
           {uploadError && <div className="text-red-600">{uploadError}</div>}
           {fetchError && <div className="text-amber-600">{fetchError}</div>}
           {!isExpert && (
             <div className="ml-auto text-[11px] text-gray-500 flex items-center gap-2">
-              Импорт и редактирование доступны только экспертам
+              Редактирование и импорт доступны только экспертам
             </div>
           )}
         </div>
@@ -458,7 +487,10 @@ export function GidroAtlasMap() {
           onFiltersChange={setFilters}
           onShowCritical={() => setFilters((f) => ({ ...f, criticalOnly: !f.criticalOnly }))}
           normalizeRegion={normalizeRegionName}
+<<<<<<< HEAD
+=======
           isExpert={isExpert}
+>>>>>>> b7d5fce (redaction and profile)
         />
 
         <div className="flex-1 flex overflow-hidden">
@@ -477,6 +509,7 @@ export function GidroAtlasMap() {
                 objects={filteredObjects}
                 totalObjects={objects.length}
                 onToggleLayers={() => setShowLayers(false)}
+<<<<<<< HEAD
                 onSelectArea={() => {
                   setSelectionBounds(null)
                   setIsSelectingArea(true)
@@ -487,6 +520,8 @@ export function GidroAtlasMap() {
                 }}
                 hasSelection={!!selectionBounds}
                 isSelecting={isSelectingArea}
+=======
+>>>>>>> b7d5fce (redaction and profile)
               />
             ) : (
               <button
@@ -503,13 +538,16 @@ export function GidroAtlasMap() {
                 onClose={() => setSelectedObject(null)}
                 onCompare={() => toggleCompare(selectedObject)}
                 isInCompare={compareObjects.some((o) => o.id === selectedObject.id)}
+<<<<<<< HEAD
+=======
                 canViewPassport={isExpert}
+>>>>>>> b7d5fce (redaction and profile)
               />
             )}
           </div>
 
           <ObjectList
-            objects={filteredObjects.slice(0, visibleCount)}
+            objects={filteredObjects}
             selectedId={selectedObject?.id}
             hoveredId={hoveredId}
             onSelect={setSelectedObject}
@@ -519,11 +557,18 @@ export function GidroAtlasMap() {
             compareObjects={compareObjects}
             onToggleCompare={toggleCompare}
             onOpenCompare={() => setShowCompare(true)}
-            hasMore={filteredObjects.length > visibleCount}
-            onLoadMore={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
+            hasMore={hasMore}
+            onLoadMore={() => {
+              const next = page + 1
+              setPage(next)
+              loadObjects(next, true).catch(() => {})
+            }}
             isLoading={loadingObjects}
+<<<<<<< HEAD
+=======
             onOpenEditor={openEditor}
             isExpert={isExpert}
+>>>>>>> b7d5fce (redaction and profile)
           />
         </div>
 
@@ -536,6 +581,8 @@ export function GidroAtlasMap() {
         )}
       </div>
 
+<<<<<<< HEAD
+=======
       {isExpert && showEditor && editorTarget && (
         <div className="fixed right-4 top-24 w-80 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 p-4 space-y-3">
           <div className="flex items-start justify-between gap-2">
@@ -553,7 +600,7 @@ export function GidroAtlasMap() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs text-gray-600">Категория состояния</label>
+            <label className="text-xs text-gray-600">Техническое состояние</label>
             <select
               className="w-full h-9 border border-gray-300 rounded-lg text-sm px-2"
               value={editorCondition}
@@ -587,11 +634,12 @@ export function GidroAtlasMap() {
             disabled={isSavingEdit}
             className="w-full h-10 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60"
           >
-            {isSavingEdit ? 'Сохраняем...' : 'Сохранить изменения'}
+            {isSavingEdit ? 'Сохранение...' : 'Сохранить изменения'}
           </button>
         </div>
       )}
 
+>>>>>>> b7d5fce (redaction and profile)
       <LoginModal
         isOpen={showLogin}
         onClose={() => setShowLogin(false)}

@@ -1,12 +1,21 @@
 import React, { useEffect, useState } from 'react'
+import { Navbar } from '@widgets/landing/Navbar'
 import { getJson } from '@shared/api/http'
+import { supabase } from '@shared/api/supabaseClient'
+import { Eye, EyeOff } from 'lucide-react'
+
+type UserRole = 'guest' | 'expert'
 
 export const ProfilePage: React.FC = () => {
   const [userLogin, setUserLogin] = useState<string | null>(null)
+  const [role, setRole] = useState<UserRole>('guest')
   const [status, setStatus] = useState<'loading' | 'ready'>('loading')
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('access_token')
+    const storedLogin = localStorage.getItem('user_login')
+
     if (!token) {
       setStatus('ready')
       return
@@ -14,8 +23,12 @@ export const ProfilePage: React.FC = () => {
 
     getJson<{ login: string; user_id?: string }>('/auth/me', token).then((res) => {
       if ('data' in res) {
-        setUserLogin(res.data.login)
-        localStorage.setItem('user_login', res.data.login)
+        const loginValue = res.data.login || storedLogin || null
+        setUserLogin(loginValue)
+        if (loginValue) {
+          localStorage.setItem('user_login', loginValue)
+          fetchRole(loginValue).catch(() => setRole('guest'))
+        }
       } else {
         localStorage.removeItem('access_token')
         localStorage.removeItem('user_login')
@@ -24,79 +37,58 @@ export const ProfilePage: React.FC = () => {
     })
   }, [])
 
+  const fetchRole = async (login: string) => {
+    const { data, error } = await supabase.from('users').select('role').eq('login', login).single()
+    if (error) {
+      setRole('guest')
+      return
+    }
+    const value = (data as { role?: string } | null)?.role
+    setRole(value === 'expert' ? 'expert' : 'guest')
+  }
+
   const handleLogout = () => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('user_login')
     setUserLogin(null)
+    setRole('guest')
     window.location.assign('/')
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-warm-50 to-warm-100 text-gray-900">
-      {/* Navbar */}
-      <nav className="flex justify-between items-center px-8 py-4 bg-white shadow-lg sticky top-0 z-50 rounded-b-xl transition-all duration-300 hover:shadow-2xl">
-        <div className="text-3xl font-bold text-gray-900 hover:scale-105 transition-transform cursor-pointer">
-          MyApp
-        </div>
-        <div className="flex items-center gap-4">
-          <button className="px-5 py-2 bg-blue-500 text-white font-semibold rounded-full hover:bg-blue-600 hover:scale-105 transition-transform">
-            Настройки
-          </button>
-          <button
-            onClick={handleLogout}
-            className="px-5 py-2 bg-red-500 text-white font-semibold rounded-full hover:bg-red-600 hover:scale-105 transition-transform"
-          >
-            Выйти
-          </button>
-          <a
-            href="/maps"
-            className="px-5 py-2 bg-green-500 text-white font-semibold rounded-full hover:bg-green-600 hover:scale-105 transition-transform"
-          >
-            Карты
-          </a>
-        </div>
-      </nav>
+  const maskedPassword = '••••••••'
+  const passwordRevealed = 'Пароль не хранится на клиенте'
 
-      {/* Контент профиля */}
-      <div className="flex items-center justify-center px-6 mt-12">
-        <div className="w-full max-w-3xl bg-white/90 backdrop-blur-xl border border-warm-100 rounded-3xl p-10 shadow-xl shadow-warm-200/40 animate-fadeIn">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-extrabold text-gray-900 animate-fadeInDown">
-              Профиль
-            </h1>
-            <a
-              href="/"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-warm-200 text-sm font-semibold text-gray-800 hover:bg-warm-50 transition"
-            >
-              ← На главную
-            </a>
+  return (
+    <div className="min-h-screen bg-gray-50 text-gray-900">
+      <Navbar
+        onLoginClick={() => (window.location.href = '/')}
+        userLogin={userLogin}
+        onLogout={handleLogout}
+        onProfile={() => {}}
+      />
+
+      <div className="pt-24 max-w-4xl mx-auto px-4">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8">
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <p className="text-sm text-gray-500">Профиль</p>
+              <h1 className="text-2xl font-bold text-gray-900">Ваши данные</h1>
+            </div>
           </div>
 
-          {status === 'loading' && (
-            <p className="text-gray-600 animate-pulse">Загружаем данные профиля...</p>
-          )}
+          {status === 'loading' && <p className="text-gray-600">Загрузка профиля...</p>}
 
-          {status === 'ready' && !userLogin && (
-            <div className="space-y-3 animate-fadeIn">
-              <p className="text-gray-700">
-                Вы не авторизованы. Пожалуйста, войдите на главной странице.
-              </p>
-              <a
-                href="/"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-warm-400 text-gray-900 font-semibold shadow-md shadow-warm-400/30 hover:bg-warm-500 hover:scale-105 transition-transform"
-              >
-                Перейти к логину
-              </a>
-            </div>
-          )}{status === 'ready' && userLogin && (
-            <div className="space-y-4 animate-fadeIn">
-              <div className="inline-flex items-center gap-3 px-4 py-2 bg-warm-50 border border-warm-200 rounded-2xl text-gray-800 shadow-md shadow-warm-200/30">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="font-semibold">{userLogin}</span>
+          {status === 'ready' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl border border-gray-100 bg-gray-50">
+                <p className="text-xs text-gray-500 mb-1">Логин</p>
+                <p className="text-lg font-semibold text-gray-900">{userLogin || 'Не авторизован'}</p>
               </div>
-              <p className="text-gray-600">
-                Скоро здесь появятся настройки и данные вашего аккаунта.
-              </p>
+
+              <div className="p-4 rounded-xl border border-gray-100 bg-gray-50">
+                <p className="text-xs text-gray-500 mb-1">Роль</p>
+                <p className="text-lg font-semibold text-gray-900">{role === 'expert' ? 'Эксперт' : 'Гость'}</p>
+              </div>
             </div>
           )}
         </div>

@@ -35,7 +35,7 @@ export interface Filters {
   hasFauna: boolean | null
   passportDateFrom: string
   passportDateTo: string
-  condition: number | null
+  condition: number[]
   priority: string
   criticalOnly: boolean
   search: string
