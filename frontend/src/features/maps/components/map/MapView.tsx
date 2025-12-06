@@ -38,7 +38,7 @@ export function MapView({
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<any>(null)
   const tileLayerRef = useRef<any>(null)
-  const initIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const initIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const initializeMap = () => {
     if (typeof window === 'undefined' || !(window as any).L || mapRef.current || !mapContainerRef.current) return

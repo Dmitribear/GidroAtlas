@@ -82,7 +82,7 @@ export function GidroAtlasMap() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [showLayers, setShowLayers] = useState(true)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const isExpert = userRole === 'expert'
 

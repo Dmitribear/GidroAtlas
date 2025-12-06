@@ -17,14 +17,6 @@ const waterTypes = [
   { value: 'saline', label: 'Непресная / солёная вода' },
 ]
 
-const conditions = [
-  { value: 1, label: '1 - Отличное', color: 'bg-emerald-500' },
-  { value: 2, label: '2 - Хорошее', color: 'bg-lime-500' },
-  { value: 3, label: '3 - Удовлетворительное', color: 'bg-amber-400' },
-  { value: 4, label: '4 - Неудовлетворительное', color: 'bg-orange-500' },
-  { value: 5, label: '5 - Аварийное', color: 'bg-red-500' },
-]
-
 interface FilterBarProps {
   filters: Filters
   onFiltersChange: (filters: Filters) => void

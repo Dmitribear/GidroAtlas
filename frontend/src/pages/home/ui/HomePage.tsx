@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navbar } from '@widgets/landing/Navbar'
 import { Hero } from '@widgets/landing/Hero'
 import { Marquee } from '@widgets/landing/Marquee'
@@ -14,7 +14,6 @@ import { useLucide } from '@shared/lib/useLucide'
 export const HomePage = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
-  const [accessToken, setAccessToken] = useState<string | null>(null)
   const [userLogin, setUserLogin] = useState<string | null>(null)
   const [authError, setAuthError] = useState<string | null>(null)
 
@@ -35,7 +34,6 @@ export const HomePage = () => {
 
       const token = await ensureBackendToken(oauthLogin, syntheticPassword)
       if (token) {
-        setAccessToken(token)
         setUserLogin(oauthLogin)
         localStorage.setItem('access_token', token)
         localStorage.setItem('user_login', oauthLogin)
@@ -45,7 +43,6 @@ export const HomePage = () => {
     const stored = localStorage.getItem('access_token')
     const storedLogin = localStorage.getItem('user_login')
     if (stored) {
-      setAccessToken(stored)
       setUserLogin(storedLogin)
       getJson<{ login: string; user_id?: string }>('/auth/me', stored).then((res) => {
         if ('data' in res) {
@@ -55,7 +52,6 @@ export const HomePage = () => {
             localStorage.setItem('user_login', nextLogin)
           }
         } else {
-          setAccessToken(null)
           setUserLogin(null)
           localStorage.removeItem('access_token')
           localStorage.removeItem('user_login')
@@ -80,7 +76,6 @@ export const HomePage = () => {
   }
 
   const handleAuthSuccess = (token: string, login: string) => {
-    setAccessToken(token)
     setUserLogin(login)
     localStorage.setItem('access_token', token)
     localStorage.setItem('user_login', login)
@@ -89,7 +84,6 @@ export const HomePage = () => {
   }
 
   const handleLogout = () => {
-    setAccessToken(null)
     setUserLogin(null)
     localStorage.removeItem('access_token')
     localStorage.removeItem('user_login')
@@ -125,8 +119,10 @@ export const HomePage = () => {
         </main>
       </div>
 
-      {accessToken && userLogin && (
-      <span></span>
+      {authError && (
+        <div className="fixed bottom-4 right-4 bg-red-50 text-red-700 text-xs px-3 py-2 rounded-lg border border-red-200 shadow">
+          {authError}
+        </div>
       )}
 
       <ContactFooter />

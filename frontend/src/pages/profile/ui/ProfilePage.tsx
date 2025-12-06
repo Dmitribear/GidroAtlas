@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { Navbar } from '@widgets/landing/Navbar'
 import { getJson } from '@shared/api/http'
 import { supabase } from '@shared/api/supabaseClient'
-import { Eye, EyeOff } from 'lucide-react'
 
 type UserRole = 'guest' | 'expert'
 
@@ -10,7 +9,6 @@ export const ProfilePage: React.FC = () => {
   const [userLogin, setUserLogin] = useState<string | null>(null)
   const [role, setRole] = useState<UserRole>('guest')
   const [status, setStatus] = useState<'loading' | 'ready'>('loading')
-  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('access_token')
@@ -55,8 +53,6 @@ export const ProfilePage: React.FC = () => {
     window.location.assign('/')
   }
 
-  const maskedPassword = '••••••••'
-  const passwordRevealed = 'Пароль не хранится на клиенте'
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -64,7 +60,13 @@ export const ProfilePage: React.FC = () => {
         onLoginClick={() => (window.location.href = '/')}
         userLogin={userLogin}
         onLogout={handleLogout}
-        onProfile={() => {}}
+        onProfile={() => (window.location.href = '/profile')}
+        ctaLabel="На главную"
+        ctaHref="/"
+        navItems={[
+          { label: 'Карта', href: '/maps' },
+          { label: 'Отчёты', href: '/reports' },
+        ]}
       />
 
       <div className="pt-24 max-w-4xl mx-auto px-4">

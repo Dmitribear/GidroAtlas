@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Cloud, Float, Stars } from '@react-three/drei';
+import { Cloud as DreiCloud, Float, Stars } from '@react-three/drei';
 import * as THREE from 'three';
 
 declare global {
@@ -91,6 +91,7 @@ const FloatingParticles = () => {
 };
 
 const AtmosphericScene = () => {
+  const Cloud = DreiCloud as unknown as React.ComponentType<any>;
   return (
     <>
       <ambientLight intensity={1.2} color="#fff7ed" />
