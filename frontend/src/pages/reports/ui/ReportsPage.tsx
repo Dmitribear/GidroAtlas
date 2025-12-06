@@ -29,20 +29,23 @@ export const ReportsPage = () => {
         userLogin={userLogin}
         onLogout={handleLogout}
         onProfile={() => (window.location.href = '/profile')}
-        ctaLabel="К карте"
+        ctaLabel="На карту"
         ctaHref="/maps"
+        navItems={[
+          { label: 'Главная', href: '/' },
+          { label: 'Карта', href: '/maps' },
+          { label: 'Профиль', href: '/profile' },
+        ]}
       />
 
       <main className="pt-28 pb-16 px-6">
         <div className="max-w-6xl mx-auto rounded-3xl bg-white shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
           <div className="px-10 py-14 text-center space-y-6">
             <p className="text-sm uppercase tracking-[0.25em] text-fuchsia-500">Отчёты</p>
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-              Раздел отчётов скоро появится
-            </h1>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Раздел отчётов скоро появится</h1>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Здесь будет витрина выгрузок, аналитика и экспорт данных. Пока готовим функциональность —
-              скоро всё заработает.
+              Здесь будет витрина выгрузок, аналитика и экспорт данных. Пока готовим функциональность — скоро всё
+              заработает.
             </p>
             <div className="flex justify-center gap-3">
               <a
