@@ -39,7 +39,7 @@ export function ComparePanel({ objects, onClose, onRemove }: ComparePanelProps) 
       <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-blue-50 to-white">
         <div>
           <p className="text-xs text-gray-500">Сравнение объектов</p>
-          <h3 className="text-lg font-semibold text-gray-900">{objects.length} выбрано</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{objects.length} объектов</h3>
         </div>
         <button
           onClick={onClose}
@@ -107,7 +107,9 @@ export function ComparePanel({ objects, onClose, onRemove }: ComparePanelProps) 
                   <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
                   <div>
                     <p className="text-gray-500">Тип воды</p>
-                    <p className="text-gray-900 font-semibold">{object.waterType === 'fresh' ? 'Пресная' : 'Солёная'}</p>
+                    <p className="text-gray-900 font-semibold">
+                      {object.waterType === 'fresh' ? 'Пресная' : 'Солёная'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -115,7 +117,7 @@ export function ComparePanel({ objects, onClose, onRemove }: ComparePanelProps) 
               <div className="mt-3 flex items-center gap-2">
                 <ConditionBadge value={object.condition} />
                 <div className="text-[11px] text-gray-500">
-                  {object.coordinates.lat.toFixed(2)}°, {object.coordinates.lng.toFixed(2)}°
+                  {object.coordinates.lat.toFixed(2)}, {object.coordinates.lng.toFixed(2)}
                 </div>
               </div>
             </div>

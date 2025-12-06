@@ -1,6 +1,6 @@
 "use client"
 
-import { Heart, GitCompare, ChevronDown, Droplets, Waves, Database, Fish } from 'lucide-react'
+import { Heart, GitCompare, ChevronDown, Droplets, Waves, Database, Fish, Pencil } from 'lucide-react'
 import type { WaterObject, SortOption } from '../../types'
 import { getResourceTypeLabel } from '../../utils'
 import { useState, useRef, useEffect } from 'react'
@@ -19,9 +19,12 @@ interface ObjectListProps {
   hasMore?: boolean
   onLoadMore?: () => void
   isLoading?: boolean
+  onOpenEditor: () => void
+  isExpert: boolean
 }
 
 const sortOptions: { value: SortOption; label: string }[] = [
+<<<<<<< HEAD
   { value: 'priority_desc', label: 'Приоритет: высокий → низкий' },
   { value: 'priority_asc', label: 'Приоритет: низкий → высокий' },
   { value: 'condition_desc', label: 'Состояние: 5 → 1' },
@@ -38,6 +41,12 @@ const sortOptions: { value: SortOption; label: string }[] = [
   { value: 'water_type_desc', label: 'Тип воды Я → A' },
   { value: 'fauna_desc', label: 'Фауна: есть → нет' },
   { value: 'fauna_asc', label: 'Фауна: нет → есть' },
+=======
+  { value: 'dangerous', label: 'Опасные сначала' },
+  { value: 'safe', label: 'Безопасные сначала' },
+  { value: 'oldest', label: 'Старые паспорта' },
+  { value: 'newest', label: 'Новые паспорта' },
+>>>>>>> b7d5fce (redaction and profile)
 ]
 
 export function ObjectList({
@@ -54,6 +63,8 @@ export function ObjectList({
   hasMore = false,
   onLoadMore,
   isLoading = false,
+  onOpenEditor,
+  isExpert,
 }: ObjectListProps) {
   const [showSortMenu, setShowSortMenu] = useState(false)
   const sortRef = useRef<HTMLDivElement>(null)
@@ -69,38 +80,58 @@ export function ObjectList({
   }, [])
 
   return (
-    <div className="w-96 border-l border-gray-200 flex flex-col bg-white shrink-0">
+    <div className="w-96 border-l border-gray-200 flex flex-col bg-white shrink-0 relative">
       <div className="p-3 border-b border-gray-100">
+<<<<<<< HEAD
         <h2 className="text-base font-semibold text-gray-900">Список объектов</h2>
         <div className="flex items-center justify-between mt-1">
           <p className="text-xs text-gray-500">{objects.length} найдено</p>
+=======
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">Список объектов</h2>
+            <p className="text-xs text-gray-500">{objects.length} объектов</p>
+          </div>
+>>>>>>> b7d5fce (redaction and profile)
 
-          <div className="relative" ref={sortRef}>
-            <button
-              onClick={() => setShowSortMenu(!showSortMenu)}
-              className="text-xs text-gray-600 hover:text-gray-900 flex items-center gap-1"
-            >
-              <span className="font-medium">{sortOptions.find((s) => s.value === sortBy)?.label}</span>
-              <ChevronDown className="w-3 h-3" />
-            </button>
-            {showSortMenu && (
-              <div className="absolute top-full right-0 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1">
-                {sortOptions.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => {
-                      onSortChange(opt.value)
-                      setShowSortMenu(false)
-                    }}
-                    className={`w-full px-3 py-1.5 text-left text-xs hover:bg-gray-50 transition-colors ${
-                      sortBy === opt.value ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+          <div className="flex items-center gap-2">
+            {isExpert && (
+              <button
+                onClick={onOpenEditor}
+                className="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:text-blue-700 hover:border-blue-400 transition-colors"
+                title="Редактировать"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
             )}
+
+            <div className="relative" ref={sortRef}>
+              <button
+                onClick={() => setShowSortMenu(!showSortMenu)}
+                className="text-xs text-gray-600 hover:text-gray-900 flex items-center gap-1"
+              >
+                <span className="font-medium">{sortOptions.find((s) => s.value === sortBy)?.label}</span>
+                <ChevronDown className="w-3 h-3" />
+              </button>
+              {showSortMenu && (
+                <div className="absolute top-full right-0 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1">
+                  {sortOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => {
+                        onSortChange(opt.value)
+                        setShowSortMenu(false)
+                      }}
+                      className={`w-full px-3 py-1.5 text-left text-xs hover:bg-gray-50 transition-colors ${
+                        sortBy === opt.value ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -235,10 +266,17 @@ function ObjectListCard({
         <p className="text-[10px] text-gray-500 truncate">{object.region}</p>
         <div className="flex items-center gap-2 mt-1">
           <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium text-white ${conditionBgColor}`}>
+<<<<<<< HEAD
             {object.condition <= 2 ? 'Хорошее' : object.condition <= 3 ? 'Удовлетворительное' : 'Аварийное'}
           </span>
           <span className="text-[10px] text-gray-400">
             {object.waterType === 'fresh' ? 'Пресная' : 'Непресная'}
+=======
+            {object.condition <= 2 ? 'Хорошее' : object.condition <= 3 ? 'Удовлетворительное' : 'Плохое'}
+          </span>
+          <span className="text-[10px] text-gray-400">
+            {object.waterType === 'fresh' ? 'Пресная вода' : 'Солёная вода'}
+>>>>>>> b7d5fce (redaction and profile)
           </span>
         </div>
       </div>

@@ -27,13 +27,13 @@ export function Header({ onUploadCsv, isUploading, userLogin, onLogout }: Header
           href="#"
           className="px-2.5 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
         >
-          Слои
+          Объекты
         </a>
         <a
           href="#"
           className="px-2.5 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
         >
-          Справка
+          Отчёты
         </a>
       </nav>
 
@@ -44,10 +44,10 @@ export function Header({ onUploadCsv, isUploading, userLogin, onLogout }: Header
           className="flex items-center gap-1.5 px-3 py-1.5 text-blue-600 border border-blue-200 rounded-md hover:bg-blue-50 transition-colors disabled:opacity-60"
         >
           <Upload className="w-3.5 h-3.5" />
-          {isUploading ? 'Загрузка...' : 'CSV'}
+          {isUploading ? 'Импорт...' : 'Импорт CSV'}
         </button>
         <a href="#" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">
-          Отчёты
+          Профиль
         </a>
         {!userLogin ? (
           <div className="flex items-center gap-1.5 px-3 py-1.5 text-white font-medium bg-blue-600 rounded-md">

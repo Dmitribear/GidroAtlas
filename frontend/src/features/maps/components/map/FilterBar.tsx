@@ -14,14 +14,22 @@ const resourceTypes = [
 
 const waterTypes = [
   { value: 'fresh', label: 'Пресная вода' },
+<<<<<<< HEAD
   { value: 'saline', label: 'Непресная / солёная вода' },
+=======
+  { value: 'saline', label: 'Солёная / минерализованная вода' },
+>>>>>>> b7d5fce (redaction and profile)
 ]
 
 const conditions = [
   { value: 1, label: '1 - Отличное', color: 'bg-emerald-500' },
   { value: 2, label: '2 - Хорошее', color: 'bg-lime-500' },
   { value: 3, label: '3 - Удовлетворительное', color: 'bg-amber-400' },
+<<<<<<< HEAD
   { value: 4, label: '4 - Неудовлетворительное', color: 'bg-orange-500' },
+=======
+  { value: 4, label: '4 - Плохое', color: 'bg-orange-500' },
+>>>>>>> b7d5fce (redaction and profile)
   { value: 5, label: '5 - Аварийное', color: 'bg-red-500' },
 ]
 
@@ -30,12 +38,14 @@ interface FilterBarProps {
   onFiltersChange: (filters: Filters) => void
   onShowCritical: () => void
   normalizeRegion: (value: string) => string
+  isExpert: boolean
 }
 
-export function FilterBar({ filters, onFiltersChange, onShowCritical, normalizeRegion }: FilterBarProps) {
+export function FilterBar({ filters, onFiltersChange, onShowCritical, normalizeRegion, isExpert }: FilterBarProps) {
   const activeFiltersCount = Object.values(filters).filter((v) => v !== '' && v !== null && v !== false).length
 
   const clearFilters = () => {
+    if (!isExpert) return
     onFiltersChange({
       region: '',
       resourceType: '',
@@ -57,8 +67,14 @@ export function FilterBar({ filters, onFiltersChange, onShowCritical, normalizeR
           type="text"
           placeholder="Поиск по названию или тегам..."
           className="w-full h-8 pl-8 pr-3 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+<<<<<<< HEAD
           value={filters.search}
           onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
+=======
+          disabled={!isExpert}
+          value={filters.search}
+          onChange={(e) => isExpert && onFiltersChange({ ...filters, search: e.target.value })}
+>>>>>>> b7d5fce (redaction and profile)
         />
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
       </div>
@@ -69,29 +85,33 @@ export function FilterBar({ filters, onFiltersChange, onShowCritical, normalizeR
         label="Тип"
         value={filters.resourceType}
         options={resourceTypes}
-        onChange={(v) => onFiltersChange({ ...filters, resourceType: v })}
+        onChange={(v) => isExpert && onFiltersChange({ ...filters, resourceType: v })}
+        disabled={!isExpert}
       />
 
       <FilterDropdown
         label="Регион"
         value={filters.region}
         options={REGION_OPTIONS.map((r) => ({ value: r, label: r }))}
-        onChange={(v) => onFiltersChange({ ...filters, region: normalizeRegion(v) })}
+        onChange={(v) => isExpert && onFiltersChange({ ...filters, region: normalizeRegion(v) })}
+        disabled={!isExpert}
       />
 
       <FilterDropdown
         label="Вода"
         value={filters.waterType}
         options={waterTypes}
-        onChange={(v) => onFiltersChange({ ...filters, waterType: v })}
+        onChange={(v) => isExpert && onFiltersChange({ ...filters, waterType: v })}
+        disabled={!isExpert}
       />
 
       <FilterDropdown
         label="Состояние"
         value={filters.condition?.toString() || ''}
         options={conditions.map((c) => ({ value: c.value.toString(), label: c.label }))}
-        onChange={(v) => onFiltersChange({ ...filters, condition: v ? Number.parseInt(v) : null })}
+        onChange={(v) => isExpert && onFiltersChange({ ...filters, condition: v ? Number.parseInt(v) : null })}
         showConditionColors
+        disabled={!isExpert}
       />
 
       <FilterDropdown
@@ -122,12 +142,13 @@ export function FilterBar({ filters, onFiltersChange, onShowCritical, normalizeR
       </div>
 
       <button
-        onClick={onShowCritical}
+        onClick={() => isExpert && onShowCritical()}
         className={`h-8 px-3 flex items-center gap-1.5 rounded-lg border text-xs font-medium transition-all ${
           filters.criticalOnly
             ? 'border-red-500 bg-red-500 text-white'
             : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-        }`}
+        } ${!isExpert ? 'opacity-60 cursor-not-allowed' : ''}`}
+        disabled={!isExpert}
       >
         <AlertTriangle className="w-3.5 h-3.5" />
         Только критические
@@ -135,10 +156,17 @@ export function FilterBar({ filters, onFiltersChange, onShowCritical, normalizeR
 
       <div className="flex-1" />
 
+      {!isExpert && (
+        <span className="text-[11px] text-gray-500 px-2 py-1 rounded-md border border-dashed border-gray-300 bg-gray-50">
+          Поиск и фильтры доступны экспертам
+        </span>
+      )}
+
       {activeFiltersCount > 0 && (
         <button
           onClick={clearFilters}
-          className="h-8 px-2 flex items-center gap-1 text-xs text-gray-600 hover:text-red-600 transition-colors"
+          className="h-8 px-2 flex items-center gap-1 text-xs text-gray-600 hover:text-red-600 transition-colors disabled:opacity-60"
+          disabled={!isExpert}
         >
           <X className="w-3.5 h-3.5" />
           Сбросить ({activeFiltersCount})
@@ -153,9 +181,10 @@ interface FilterDropdownWithIconsProps {
   value: string
   options: { value: string; label: string; icon: React.ComponentType<{ className?: string }> }[]
   onChange: (value: string) => void
+  disabled?: boolean
 }
 
-function FilterDropdownWithIcons({ label, value, options, onChange }: FilterDropdownWithIconsProps) {
+function FilterDropdownWithIcons({ label, value, options, onChange, disabled }: FilterDropdownWithIconsProps) {
   const [isOpen, setIsOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const selectedOption = options.find((o) => o.value === value)
@@ -176,12 +205,13 @@ function FilterDropdownWithIcons({ label, value, options, onChange }: FilterDrop
   return (
     <div ref={ref} className="relative">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
         className={`h-8 px-3 flex items-center gap-1.5 rounded-lg border text-xs font-medium transition-all ${
           isActive
             ? 'border-blue-500 bg-blue-50 text-blue-700'
             : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-        }`}
+        } ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+        disabled={disabled}
       >
         {SelectedIcon && <SelectedIcon className="w-3.5 h-3.5" />}
         {selectedOption?.label || label}
@@ -197,7 +227,7 @@ function FilterDropdownWithIcons({ label, value, options, onChange }: FilterDrop
             }}
             className="w-full px-3 py-2 text-left text-xs text-gray-500 hover:bg-gray-50 transition-colors"
           >
-            Не важно
+            Без фильтра
           </button>
           {options.map((opt) => {
             const Icon = opt.icon
@@ -229,9 +259,10 @@ interface FilterDropdownProps {
   options: { value: string; label: string }[]
   onChange: (value: string) => void
   showConditionColors?: boolean
+  disabled?: boolean
 }
 
-function FilterDropdown({ label, value, options, onChange, showConditionColors }: FilterDropdownProps) {
+function FilterDropdown({ label, value, options, onChange, showConditionColors, disabled }: FilterDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const selectedOption = options.find((o) => o.value === value)
@@ -261,12 +292,13 @@ function FilterDropdown({ label, value, options, onChange, showConditionColors }
   return (
     <div ref={ref} className="relative">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
         className={`h-8 px-3 flex items-center gap-1.5 rounded-lg border text-xs font-medium transition-all ${
           isActive
             ? 'border-blue-500 bg-blue-50 text-blue-700'
             : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-        }`}
+        } ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+        disabled={disabled}
       >
         {showConditionColors && value && <span className={`w-2.5 h-2.5 rounded-full ${getConditionColor(value)}`} />}
         {selectedOption?.label || label}

@@ -12,10 +12,17 @@ interface NavbarProps {
   navItems?: NavItem[]
 }
 
+<<<<<<< HEAD
 const DEFAULT_NAV_ITEMS: NavItem[] = [
   { label: 'Главная', href: '#hero' },
   { label: 'Возможности', href: '#services' },
   { label: 'Контакты', href: '#contact' },
+=======
+const NAV_ITEMS: NavItem[] = [
+  { label: 'Как это работает', href: '/#work' },
+  { label: 'Возможности', href: '/#services' },
+  { label: 'Контакты', href: '/#contact' },
+>>>>>>> b7d5fce (redaction and profile)
 ]
 
 const navFontStyle: React.CSSProperties = {
@@ -49,7 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           scrolled ? 'shadow-md' : ''
         }`}
       >
-        <a href="#hero" className="text-2xl font-medium tracking-tighter flex items-center gap-2">
+        <a href="/#hero" className="text-2xl font-medium tracking-tighter flex items-center gap-2">
           <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white text-sm font-bold">
             G
           </div>
@@ -118,10 +125,17 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           )}
           <a
+<<<<<<< HEAD
             href={ctaHref}
             className="group relative px-6 py-2.5 bg-black text-white rounded-full text-sm font-medium overflow-hidden hover:scale-105 transition-transform"
           >
             <span className="relative z-10">{ctaLabel}</span>
+=======
+            href="/maps"
+            className="group relative px-6 py-2.5 bg-black text-white rounded-full text-sm font-medium overflow-hidden hover:scale-105 transition-transform"
+          >
+            <span className="relative z-10">Перейти к карте</span>
+>>>>>>> b7d5fce (redaction and profile)
             <div className="absolute inset-0 bg-fuchsia-500 transform scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-300 ease-out"></div>
           </a>
         </div>
@@ -186,7 +200,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           )}
           <a
+<<<<<<< HEAD
             href={ctaHref}
+=======
+            href="/#contact"
+>>>>>>> b7d5fce (redaction and profile)
             className="w-full inline-flex items-center justify-center px-4 py-3 rounded-xl bg-black text-white font-medium hover:bg-fuchsia-600 transition"
             onClick={() => setMobileMenuOpen(false)}
           >

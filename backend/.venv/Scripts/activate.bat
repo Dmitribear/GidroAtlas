@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set "VIRTUAL_ENV=D:\codes\gidroatlas\backend\.venv"
+set "VIRTUAL_ENV=E:\gydroatlas\GidroAtlas\backend\.venv"
 
 if not defined PROMPT set PROMPT=$P$G
 
