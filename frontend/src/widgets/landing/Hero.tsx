@@ -2,10 +2,9 @@ import React from 'react'
 
 interface HeroProps {
   onPrimaryCta?: () => void
-  onSecondaryCta?: () => void
 }
 
-export const Hero: React.FC<HeroProps> = ({ onPrimaryCta, onSecondaryCta }) => {
+export const Hero: React.FC<HeroProps> = ({ onPrimaryCta }) => {
   return (
     <section id="work">
       <header id="hero" className="relative pt-40 pb-20 px-6 overflow-hidden bg-gradient-to-b from-amber-50 via-white to-white">

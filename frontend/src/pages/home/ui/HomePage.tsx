@@ -16,6 +16,13 @@ export const HomePage = () => {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
   const [userLogin, setUserLogin] = useState<string | null>(null)
   const [authError, setAuthError] = useState<string | null>(null)
+  const navItems = [
+    { label: 'Гидроатлас', href: '#hero' },
+    { label: 'Сервисы', href: '#services' },
+    { label: 'AI-анализ', href: '/ai' },
+    { label: 'Карта', href: '/maps' },
+    { label: 'Отчеты', href: '/reports' },
+  ]
 
   useLucide()
 
@@ -105,10 +112,11 @@ export const HomePage = () => {
           userLogin={userLogin}
           onLogout={handleLogout}
           onProfile={handleProfile}
+          navItems={navItems}
         />
 
         <main className="flex-grow flex flex-col">
-          <Hero onPrimaryCta={goToMaps} onSecondaryCta={goToMaps} />
+          <Hero onPrimaryCta={goToMaps} />
           <Marquee />
           <ServicesSection />
           <StatsSection />
