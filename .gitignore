@@ -1,4 +1,15 @@
-.env
-backend/alembic.ini
 backend/.venv
-.venv
+# Python
+*.pyc
+__pycache__/
+
+# Virtualenv
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Env files
+.env
