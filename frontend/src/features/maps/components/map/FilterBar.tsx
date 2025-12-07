@@ -23,9 +23,19 @@ interface FilterBarProps {
   onShowCritical: () => void
   normalizeRegion: (value: string) => string
   isExpert?: boolean
+  onImportCsv?: () => void
+  isImporting?: boolean
 }
 
-export function FilterBar({ filters, onFiltersChange, onShowCritical, normalizeRegion, isExpert = false }: FilterBarProps) {
+export function FilterBar({
+  filters,
+  onFiltersChange,
+  onShowCritical,
+  normalizeRegion,
+  isExpert = false,
+  onImportCsv,
+  isImporting = false,
+}: FilterBarProps) {
   const activeFiltersCount = Object.values(filters).filter((v) => v !== '' && v !== null && v !== false).length
   const disabled = !isExpert
 
@@ -137,6 +147,22 @@ export function FilterBar({ filters, onFiltersChange, onShowCritical, normalizeR
         <AlertTriangle className="w-3.5 h-3.5" />
         Только критические
       </button>
+
+      {onImportCsv && (
+        <button
+          onClick={() => {
+            if (!disabled) onImportCsv()
+          }}
+          disabled={disabled}
+          className={`h-8 px-3.5 ml-2 flex items-center gap-2 rounded-lg border text-xs font-semibold transition-all shadow-sm ${
+            disabled
+              ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+              : 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 hover:border-amber-300'
+          }`}
+        >
+          {isImporting ? 'Импорт...' : 'Импорт CSV'}
+        </button>
+      )}
 
       <div className="flex-1" />
 
