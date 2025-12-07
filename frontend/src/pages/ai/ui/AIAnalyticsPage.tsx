@@ -21,6 +21,7 @@ import {
   type PredictFormData,
   type PredictionResult,
 } from '@entities/ai/types'
+import { resolveUserRole, type UserRole } from '@shared/lib/userRole'
 
 const initialForm: PredictFormData = {
   name: 'Object-101',
@@ -38,6 +39,8 @@ export const AIAnalyticsPage = () => {
   const [showLogin, setShowLogin] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
   const [userLogin, setUserLogin] = useState<string | null>(localStorage.getItem('user_login'))
+  const [userRole, setUserRole] = useState<UserRole>('guest')
+  const [authReady, setAuthReady] = useState(false)
 
   const [prediction, setPrediction] = useState<PredictionResult | null>(null)
   const [summary, setSummary] = useState<Record<string, unknown> | null>(null)
@@ -55,6 +58,26 @@ export const AIAnalyticsPage = () => {
     analytics: false,
     upload: false,
   })
+  const accessDeniedMessage = 'Доступ гостю запрещен. Авторизуйтесь как эксперт, чтобы смотреть аналитику.'
+  const isExpert = userRole === 'expert'
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token')
+    const login = localStorage.getItem('user_login')
+    resolveUserRole(token, login)
+      .then(({ login: nextLogin, role }) => {
+        setUserLogin(nextLogin)
+        setUserRole(role)
+        if (role !== 'expert') {
+          setError(accessDeniedMessage)
+        }
+      })
+      .catch(() => {
+        setUserRole('guest')
+        setError(accessDeniedMessage)
+      })
+      .finally(() => setAuthReady(true))
+  }, [])
 
   const horizonProbability = useMemo(() => {
     const preds = prediction?.sorted_predictions
@@ -71,10 +94,13 @@ export const AIAnalyticsPage = () => {
     return null
   }, [prediction, horizon, forecast])
 
-  const handleAuthSuccess = (token: string, login: string) => {
+  const handleAuthSuccess = async (token: string, login: string) => {
     localStorage.setItem('access_token', token)
     localStorage.setItem('user_login', login)
     setUserLogin(login)
+    const resolved = await resolveUserRole(token, login).catch(() => ({ role: 'guest' as UserRole, login }))
+    setUserRole(resolved.role)
+    setAuthReady(true)
     setShowLogin(false)
     setShowRegister(false)
   }
@@ -83,9 +109,22 @@ export const AIAnalyticsPage = () => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('user_login')
     setUserLogin(null)
+    setUserRole('guest')
+    setError(accessDeniedMessage)
+    setPrediction(null)
+    setSummary(null)
+    setClusters([])
+    setForecast([])
+    setAnomalies([])
+    setObjects([])
+    setAnomalyStats(null)
   }
 
   const handlePredict = async (payload: PredictFormData) => {
+    if (!isExpert) {
+      setError(accessDeniedMessage)
+      return
+    }
     setBusy((b) => ({ ...b, predict: true }))
     setError(null)
     const res = await postJson<PredictionResult>('/ai/predict', {
@@ -172,6 +211,10 @@ export const AIAnalyticsPage = () => {
 
   const handleUpload = async (file: File | null) => {
     if (!file) return
+    if (!isExpert) {
+      setError(accessDeniedMessage)
+      return
+    }
     setBusy((b) => ({ ...b, upload: true }))
     setUploadMessage(null)
     setError(null)
@@ -199,8 +242,21 @@ export const AIAnalyticsPage = () => {
   }
 
   useEffect(() => {
+    if (!authReady) return
+    if (!isExpert) {
+      setPrediction(null)
+      setSummary(null)
+      setClusters([])
+      setForecast([])
+      setAnomalies([])
+      setObjects([])
+      setAnomalyStats(null)
+      setError(accessDeniedMessage)
+      return
+    }
+    setError(null)
     loadAnalytics().catch(() => {})
-  }, [])
+  }, [authReady, isExpert])
 
   useEffect(() => {
     if (objects.length && (!form.name || form.name === initialForm.name)) {
@@ -218,6 +274,103 @@ export const AIAnalyticsPage = () => {
       })
     }
   }, [objects])
+
+  if (!authReady) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100 text-slate-900">
+        <Navbar
+          onLoginClick={() => setShowLogin(true)}
+          userLogin={userLogin}
+          onLogout={handleLogout}
+          onProfile={() => (window.location.href = '/profile')}
+          navItems={CORE_NAV_ITEMS}
+        />
+        <main className="pt-28 pb-16 px-6">
+          <div className="max-w-4xl mx-auto">
+            <Card title="Проверяем доступ" subtitle="AI аналитика">
+              <p className="text-sm text-slate-600">Определяем права доступа...</p>
+            </Card>
+          </div>
+        </main>
+        <LoginModal
+          isOpen={showLogin}
+          onClose={() => setShowLogin(false)}
+          onOpenRegister={() => {
+            setShowLogin(false)
+            setShowRegister(true)
+          }}
+          onAuthSuccess={handleAuthSuccess}
+        />
+        <RegisterModal
+          isOpen={showRegister}
+          onClose={() => setShowRegister(false)}
+          onSwitchToLogin={() => {
+            setShowRegister(false)
+            setShowLogin(true)
+          }}
+          onAuthSuccess={handleAuthSuccess}
+        />
+      </div>
+    )
+  }
+
+  if (authReady && !isExpert) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100 text-slate-900">
+        <Navbar
+          onLoginClick={() => setShowLogin(true)}
+          userLogin={userLogin}
+          onLogout={handleLogout}
+          onProfile={() => (window.location.href = '/profile')}
+          navItems={CORE_NAV_ITEMS}
+        />
+
+        <main className="pt-28 pb-16 px-6">
+          <div className="max-w-4xl mx-auto">
+            <Card title="Доступ ограничен" subtitle="AI аналитика">
+              <p className="text-base text-slate-700">
+                Доступ гостю запрещен. Войдите под аккаунтом эксперта, чтобы увидеть аналитику.
+              </p>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowLogin(true)}
+                  className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition"
+                >
+                  Войти
+                </button>
+                <button
+                  onClick={() => setShowRegister(true)}
+                  className="px-4 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                >
+                  Зарегистрироваться
+                </button>
+              </div>
+            </Card>
+          </div>
+        </main>
+
+        <LoginModal
+          isOpen={showLogin}
+          onClose={() => setShowLogin(false)}
+          onOpenRegister={() => {
+            setShowLogin(false)
+            setShowRegister(true)
+          }}
+          onAuthSuccess={handleAuthSuccess}
+        />
+
+        <RegisterModal
+          isOpen={showRegister}
+          onClose={() => setShowRegister(false)}
+          onSwitchToLogin={() => {
+            setShowRegister(false)
+            setShowLogin(true)
+          }}
+          onAuthSuccess={handleAuthSuccess}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100 text-slate-900">

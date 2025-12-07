@@ -1,23 +1,38 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navbar } from '@widgets/landing/Navbar'
 import { LoginModal } from '@widgets/landing/LoginModal'
 import { RegisterModal } from '@widgets/landing/RegisterModal'
 import { CORE_NAV_ITEMS } from '@shared/config/navigation'
 import { API_ROOT } from '@shared/api/http'
+import { resolveUserRole, type UserRole } from '@shared/lib/userRole'
 
 export const ReportsPage = () => {
   const [showLogin, setShowLogin] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
   const [userLogin, setUserLogin] = useState<string | null>(localStorage.getItem('user_login'))
+  const [userRole, setUserRole] = useState<UserRole>('guest')
   const [uploading, setUploading] = useState(false)
   const [uploadResult, setUploadResult] = useState<{ processed: number; uploaded: number; skipped: number } | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const zipInputRef = useRef<HTMLInputElement | null>(null)
 
-  const handleAuthSuccess = (token: string, login: string) => {
+  useEffect(() => {
+    const token = localStorage.getItem('access_token')
+    const login = localStorage.getItem('user_login')
+    resolveUserRole(token, login)
+      .then(({ login: nextLogin, role }) => {
+        setUserLogin(nextLogin)
+        setUserRole(role)
+      })
+      .catch(() => setUserRole('guest'))
+  }, [])
+
+  const handleAuthSuccess = async (token: string, login: string) => {
     localStorage.setItem('access_token', token)
     localStorage.setItem('user_login', login)
     setUserLogin(login)
+    const resolved = await resolveUserRole(token, login).catch(() => ({ role: 'guest' as UserRole }))
+    setUserRole(resolved.role)
     setShowLogin(false)
     setShowRegister(false)
   }
@@ -26,11 +41,16 @@ export const ReportsPage = () => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('user_login')
     setUserLogin(null)
+    setUserRole('guest')
   }
 
   const handleZipButton = () => {
     if (!localStorage.getItem('access_token')) {
       setShowLogin(true)
+      return
+    }
+    if (userRole !== 'expert') {
+      setUploadError('Ты гость и не можешь загружать файлы или архивы.')
       return
     }
     zipInputRef.current?.click()
@@ -39,6 +59,11 @@ export const ReportsPage = () => {
   const handleZipChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
+    if (userRole !== 'expert') {
+      setUploadError('Ты гость и не можешь загружать файлы или архивы.')
+      event.target.value = ''
+      return
+    }
 
     if (!file.name.toLowerCase().endsWith('.zip')) {
       setUploadError('Поддерживаются только ZIP архивы.')
@@ -128,6 +153,9 @@ export const ReportsPage = () => {
                 <p className="text-sm text-slate-600">
                   Добавьте ZIP с файлами *.pdf. Имя файла должно совпадать с названием объекта (например, «Самаркандское водохранилище.pdf»).
                 </p>
+                {userRole !== 'expert' && (
+                  <p className="text-sm text-red-600">Для гостей загрузка файлов недоступна.</p>
+                )}
                 <div className="flex flex-col gap-3">
                   <button
                     onClick={handleZipButton}

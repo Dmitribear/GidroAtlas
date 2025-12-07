@@ -10,6 +10,7 @@ interface ObjectCardProps {
   onCompare: () => void
   isInCompare: boolean
   canViewPassport?: boolean
+  isExpert?: boolean
 }
 
 function getConditionStyles(condition: number) {
@@ -36,10 +37,14 @@ function ResourceTypeIcon({ type, className = '' }: { type: string; className?: 
   }
 }
 
-export function ObjectCard({ object, onClose, onCompare, isInCompare, canViewPassport = true }: ObjectCardProps) {
-  const conditionStyles = getConditionStyles(object.condition)
+export function ObjectCard({ object, onClose, onCompare, isInCompare, canViewPassport = true, isExpert = true }: ObjectCardProps) {
+  const conditionStyles = isExpert
+    ? getConditionStyles(object.condition)
+    : { badgeBg: 'bg-gray-100', badgeText: 'text-gray-500', accent: 'text-gray-600' }
   const formatWaterType = object.waterType === 'fresh' ? 'Пресная' : 'Непресная'
   const formatFauna = object.hasFauna ? 'Есть' : 'Нет'
+  const conditionDisplay = isExpert ? object.condition : '—'
+  const conditionLabel = isExpert ? getConditionLabel(object.condition) : 'Доступно эксперту'
 
   return (
     <div
@@ -72,10 +77,10 @@ export function ObjectCard({ object, onClose, onCompare, isInCompare, canViewPas
           <span
             className={`w-10 h-10 rounded-2xl ${conditionStyles.badgeBg} ${conditionStyles.badgeText} text-base font-bold flex items-center justify-center`}
           >
-            {object.condition}
+            {conditionDisplay}
           </span>
           <div>
-            <p className={`text-sm font-semibold ${conditionStyles.accent}`}>{getConditionLabel(object.condition)}</p>
+            <p className={`text-sm font-semibold ${conditionStyles.accent}`}>{conditionLabel}</p>
             <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
               <MapPin className="w-3 h-3" />
               {object.region}
