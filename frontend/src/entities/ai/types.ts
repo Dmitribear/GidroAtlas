@@ -28,6 +28,7 @@ export type ClusterPoint = {
   lon?: number
   risk_score?: number
   priority_score?: number
+  condition?: number
   [key: string]: unknown
 }
 

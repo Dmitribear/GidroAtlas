@@ -87,12 +87,15 @@ def make_time_series(df: pd.DataFrame) -> pd.DataFrame:
     frame = prepare_feature_frame(df)
     frame["month_index"] = np.arange(len(frame)) % 12
     frame["year_index"] = np.arange(len(frame)) // 12
+    risk_metric = ("condition", lambda s: (s <= 2).mean())
+    if "risk_score" in frame.columns:
+        risk_metric = ("risk_score", "mean")
     ts = (
         frame.groupby(["year_index", "month_index"])
         .agg(
             avg_condition=("condition", "mean"),
             avg_passport_age=("passport_age_years", "mean"),
-            risk_share=("condition", lambda s: (s <= 2).mean()),
+            risk_share=risk_metric,
         )
         .reset_index()
     )

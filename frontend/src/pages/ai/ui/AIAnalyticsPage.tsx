@@ -8,8 +8,8 @@ import { PredictForm } from '@features/ai/predict-form/ui/PredictForm'
 import { DatasetUpload } from '@features/ai/dataset-upload/ui/DatasetUpload'
 import { SummaryList } from '@widgets/ai/SummaryList'
 import { ClusterChart } from '@widgets/ai/ClusterChart'
-import { ForecastChart } from '@widgets/ai/ForecastChart'
 import { ForecastTable } from '@widgets/ai/ForecastTable'
+import { ForecastChart } from '@widgets/ai/ForecastChart'
 import { AnomalyHeatmap } from '@widgets/ai/AnomalyHeatmap'
 import { PredictResultCard } from '@widgets/ai/PredictResultCard'
 import { CORE_NAV_ITEMS } from '@shared/config/navigation'
@@ -55,14 +55,6 @@ export const AIAnalyticsPage = () => {
     analytics: false,
     upload: false,
   })
-
-  const plots = useMemo(
-    () => ({
-      risk: `${API_ROOT}/plots/risk_distribution`,
-      clusters: `${API_ROOT}/plots/cluster_map`,
-    }),
-    [],
-  )
 
   const horizonProbability = useMemo(() => {
     const preds = prediction?.sorted_predictions
@@ -277,7 +269,7 @@ export const AIAnalyticsPage = () => {
             </Card>
 
             <Card subtitle="Dataset" title="Загрузка CSV">
-              <DatasetUpload uploading={busy.upload} message={uploadMessage} error={error} onUpload={handleUpload} objects={objects} plots={plots} />
+              <DatasetUpload uploading={busy.upload} message={uploadMessage} error={error} onUpload={handleUpload} objects={objects} />
             </Card>
           </section>
 
