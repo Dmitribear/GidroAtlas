@@ -16,7 +16,7 @@ export const DatasetUpload = ({ uploading, message, error, onUpload, objects = [
         <p className="text-xs uppercase tracking-[0.2em] text-fuchsia-500">Dataset</p>
         <h2 className="text-xl font-semibold">Загрузка CSV</h2>
         <p className="text-sm text-slate-600">
-          Файл должен содержать столбцы: name, region, resource_type, water_type, fauna, passport_date, condition, lat, lon.
+          Файл должен содержать столбцы: name, region, resource_type, water_type, fauna, passport_date, {`technical_condition/condition`}, latitude, longitude.
         </p>
       </div>
       <input

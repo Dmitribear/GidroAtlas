@@ -67,6 +67,24 @@ class WaterObjectRepositorySupabase:
       return None
     return self._to_entity(record)
 
+  async def get_by_name(self, name: str) -> WaterObject | None:
+    qb = self._client.raw.table(self._table).select("*").ilike("name", name).limit(1)
+    rows = await asyncio.to_thread(qb.execute)
+    data = rows.data[0] if rows.data else None
+    if data:
+      return self._to_entity(data)
+    # fallback: try exact match to account for case-sensitive names
+    qb = self._client.raw.table(self._table).select("*").eq("name", name).limit(1)
+    rows = await asyncio.to_thread(qb.execute)
+    data = rows.data[0] if rows.data else None
+    if data:
+      return self._to_entity(data)
+    return None
+
+  async def update_pdf_url(self, object_id: str, pdf_url: str) -> None:
+    qb = self._client.raw.table(self._table).update({"pdf_url": pdf_url}).eq("id", object_id)
+    await asyncio.to_thread(qb.execute)
+
   def _to_entity(self, row: dict[str, Any]) -> WaterObject:
     return WaterObject(
       id=str(row["id"]),

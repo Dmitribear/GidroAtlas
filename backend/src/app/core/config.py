@@ -16,6 +16,7 @@ class Settings(BaseSettings):
 
   supabase_url: str = ""
   supabase_key: str = ""
+  supabase_storage_bucket: str = "passports"
 
   jwt_secret: str = "change-me"
   jwt_algorithm: str = "HS256"

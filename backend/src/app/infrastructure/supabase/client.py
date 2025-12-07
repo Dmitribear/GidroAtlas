@@ -27,3 +27,19 @@ class SupabaseClient:
   async def select_many(self, table: str) -> list[dict[str, Any]]:
     response = await asyncio.to_thread(self.raw.table(table).select("*").execute)
     return response.data or []
+
+  async def upload_to_bucket(
+    self,
+    bucket: str,
+    path: str,
+    data: bytes,
+    *,
+    content_type: str = "application/octet-stream",
+    upsert: bool = True,
+  ) -> None:
+    storage = self.raw.storage.from_(bucket)
+    await asyncio.to_thread(storage.upload, path, data, {"contentType": content_type, "upsert": upsert})
+
+  def get_public_url(self, bucket: str, path: str) -> str:
+    storage = self.raw.storage.from_(bucket)
+    return storage.get_public_url(path)

@@ -10,8 +10,24 @@ const conditionLabels: Record<number, string> = {
   1: 'Очень хорошее',
   2: 'Хорошее',
   3: 'Удовлетворительное',
-  4: 'Неудовлетворительное',
-  5: 'Аварийное',
+  4: 'Плохое состояние',
+  5: 'Аварийное состояние',
+}
+
+const conditionBadgeBg: Record<number, string> = {
+  1: '#DCFCE7',
+  2: '#E6F9D4',
+  3: '#FFF4D6',
+  4: '#FDE4D6',
+  5: '#FFE0E0',
+}
+
+const conditionBadgeColor: Record<number, string> = {
+  1: '#16A34A',
+  2: '#48A921',
+  3: '#C97700',
+  4: '#DC4B15',
+  5: '#B42318',
 }
 
 const resourceLabels: Record<string, string> = {
@@ -30,8 +46,6 @@ function buildPopupHtml(obj: any) {
   const type = resourceLabels[typeKey] || 'Ресурс'
   const conditionValue = Number(obj.technical_condition ?? obj.condition ?? 0)
   const conditionText = conditionLabels[conditionValue] || 'Нет данных'
-  const conditionColor = conditionColors[conditionValue] || '#64748b'
-  const badgeColor = obj.markerColor || conditionColor
   const pdfLink = obj.pdf_url ?? obj.pdfUrl
   const priorityRaw = obj.priority ?? ''
   let priorityLabel = ''
@@ -44,33 +58,34 @@ function buildPopupHtml(obj: any) {
     }
   }
 
+  const badgeBg = conditionBadgeBg[conditionValue] || '#E2E8F0'
+  const badgeFontColor = conditionBadgeColor[conditionValue] || '#475569'
+
   return `
-    <div style="width:170px;border-radius:6px;overflow:hidden;box-shadow:0 8px 18px rgba(15,23,42,0.16);background:#fff;font-family:'Inter','Helvetica',sans-serif;border:1px solid #e2e8f0;">
-      <div style="position:relative;height:80px;overflow:hidden;background:#f8fafc;">
+    <div style="width:200px;border-radius:18px;overflow:hidden;box-shadow:0 14px 38px rgba(15,23,42,0.2);background:#fff;font-family:'Inter','Helvetica',sans-serif;border:1px solid #e2e8f0;">
+      <div style="position:relative;height:92px;overflow:hidden;">
         <img src="${image}" alt="${name}" style="width:100%;height:100%;object-fit:cover;display:block;" />
-        <div style="position:absolute;top:6px;left:6px;padding:3px 6px;border-radius:5px;background:rgba(17,24,39,0.82);color:#f8fafc;font-size:10px;font-weight:600;">
+        <div style="position:absolute;top:8px;left:8px;padding:4px 10px;border-radius:999px;background:rgba(15,23,42,0.88);color:#fff;font-size:10px;font-weight:600;">
           ${type}
         </div>
+        ${
+          priorityLabel
+            ? `<div style="position:absolute;top:8px;right:8px;padding:4px 8px;border-radius:999px;background:#EEF2FF;color:#4338CA;font-size:10px;font-weight:700;">${priorityLabel}</div>`
+            : ''
+        }
       </div>
-      <div style="padding:8px 10px 9px;display:flex;flex-direction:column;gap:6px;">
-        <div style="font-size:13px;font-weight:800;color:#0f172a;line-height:1.25;">${name}</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:#475569;">
-          <span style="padding:3px 6px;border-radius:5px;background:${badgeColor};color:#fff;font-weight:700;">${conditionText}</span>
-          ${
-            priorityLabel
-              ? `<span style="padding:2px 6px;border-radius:5px;background:#eef2ff;color:#4338ca;font-weight:700;">${priorityLabel}</span>`
-              : ''
-          }
+      <div style="padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px;">
+        <span style="align-self:flex-start;padding:4px 10px;border-radius:999px;background:${badgeBg};color:${badgeFontColor};font-size:10px;font-weight:600;">${conditionText}</span>
+        <div style="font-size:15px;font-weight:700;color:#0f172a;line-height:1.3;">${name}</div>
+        <div style="font-size:11px;color:#475569;font-weight:500;">${region}</div>
+        <div style="font-size:11px;color:#0f172a;">
+          ${Number(obj.latitude ?? obj.coordinates?.lat)?.toFixed(3) ?? ''}°, ${Number(obj.longitude ?? obj.coordinates?.lng)?.toFixed(3) ?? ''}°
         </div>
-        <div style="font-size:10px;color:#475569;line-height:1.4;">
-          <div style="margin-bottom:3px;color:#0f172a;font-weight:600;">${region}</div>
-          <div style="color:#0f172a;">${Number(obj.latitude ?? obj.coordinates?.lat)?.toFixed(3) ?? ''}, ${Number(obj.longitude ?? obj.coordinates?.lng)?.toFixed(3) ?? ''}</div>
-          ${
-            pdfLink
-              ? `<a href="${pdfLink}" target="_blank" rel="noopener" style="color:#2563eb;font-weight:600;text-decoration:none;">Паспорт (PDF)</a>`
-              : '<span style="color:#94a3b8;">Паспорт не прикреплён</span>'
-          }
-        </div>
+        ${
+          pdfLink
+            ? `<a href="${pdfLink}" target="_blank" rel="noopener" style="font-size:12px;font-weight:600;color:#2563eb;text-decoration:none;">Открыть паспорт (PDF)</a>`
+            : '<span style="font-size:11px;color:#94a3b8;">Паспорт не прикреплён</span>'
+        }
       </div>
     </div>
   `
