@@ -1,0 +1,12 @@
+2025-12-07 11:00:51 | WARNING | ModelRegistry | Failed to load classifier artifact classifier_v20251206115651.pkl: str.__new__(X): X is not a type object (str)
+2025-12-07 11:00:51 | INFO | RiskService | Classifier missing. Training from scratch.
+2025-12-07 11:00:51 | INFO | RiskService | Classifier missing. Training from scratch.
+2025-12-07 11:00:51 | WARNING | ModelTrainer | Insufficient classes (train={0: 7}, test={0: 2}). Training DummyClassifier.
+2025-12-07 11:00:51 | WARNING | ModelTrainer | Insufficient classes (train={0: 7}, test={0: 2}). Training DummyClassifier.
+2025-12-07 11:00:51 | INFO | ModelRegistry | Saved classifier artifact classifier_v20251207080051.pkl
+2025-12-07 11:00:51 | INFO | ModelRegistry | Saved classifier artifact classifier_v20251207080051.pkl
+2025-12-07 11:03:19 | WARNING | RiskService | Dropped 1 objects due to rare condition classes: {5: 1}
+2025-12-07 11:03:20 | INFO | ModelTrainer | Using 5-fold CV (minority class size=11)
+2025-12-07 11:03:20 | INFO | ModelTrainer | Cross-validation ROC-AUC mean=1.0000 std=0.0000
+2025-12-07 11:03:20 | INFO | ModelRegistry | Saved classifier artifact classifier_v20251207080320.pkl
+2025-12-07 11:03:20 | INFO | ModelTrainer | Classifier trained version=20251207080320 metrics={'accuracy': 0.8, 'roc_auc': 1.0, 'pr_auc': 0.4, 'f1': 0.8, 'precision_high': 1.0, 'recall_high': 0.6666666666666666, 'cv_roc_auc_mean': 1.0, 'cv_roc_auc_std': 0.0}
