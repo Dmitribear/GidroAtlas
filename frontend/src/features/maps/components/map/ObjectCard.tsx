@@ -1,6 +1,6 @@
 "use client"
 
-import { X, MapPin, Droplets, Fish, Calendar, FileText, GitCompare, Waves, Database } from 'lucide-react'
+import { X, MapPin, Droplets, FileText, GitCompare, Waves, Database } from 'lucide-react'
 import type { WaterObject } from '../../types'
 import { getConditionLabel, getResourceTypeLabel } from '../../utils'
 
@@ -38,6 +38,8 @@ function ResourceTypeIcon({ type, className = '' }: { type: string; className?: 
 
 export function ObjectCard({ object, onClose, onCompare, isInCompare, canViewPassport = true }: ObjectCardProps) {
   const conditionStyles = getConditionStyles(object.condition)
+  const formatWaterType = object.waterType === 'fresh' ? 'Пресная' : 'Непресная'
+  const formatFauna = object.hasFauna ? 'Есть' : 'Нет'
 
   return (
     <div
@@ -83,36 +85,30 @@ export function ObjectCard({ object, onClose, onCompare, isInCompare, canViewPas
 
         <h3 className="text-lg font-bold text-gray-900 leading-tight">{object.name}</h3>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex items-center gap-2 p-2.5 bg-cyan-50 rounded-xl">
-            <Droplets className="w-4 h-4 text-cyan-600" />
-            <div className="text-xs">
-              <p className="text-[10px] text-gray-500 uppercase tracking-wide">Вода</p>
-              <p className="font-semibold text-gray-900">{object.waterType === 'fresh' ? 'Пресная' : 'Непресная'}</p>
-            </div>
+        <div className="grid grid-cols-2 gap-3 text-sm text-slate-800">
+          <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 space-y-1">
+            <p className="text-[11px] uppercase tracking-wide text-slate-500">Область</p>
+            <p className="font-semibold">{object.region}</p>
           </div>
-          <div className="flex items-center gap-2 p-2.5 bg-green-50 rounded-xl">
-            <Fish className="w-4 h-4 text-green-600" />
-            <div className="text-xs">
-              <p className="text-[10px] text-gray-500 uppercase tracking-wide">Фауна</p>
-              <p className="font-semibold text-gray-900">{object.hasFauna ? 'Есть' : 'Нет'}</p>
-            </div>
+          <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 space-y-1">
+            <p className="text-[11px] uppercase tracking-wide text-slate-500">Тип ресурса</p>
+            <p className="font-semibold">{getResourceTypeLabel(object.resourceType)}</p>
           </div>
-          <div className="flex items-center gap-2 p-2.5 bg-orange-50 rounded-xl">
-            <Calendar className="w-4 h-4 text-orange-600" />
-            <div className="text-xs">
-              <p className="text-[10px] text-gray-500 uppercase tracking-wide">Паспорт</p>
-              <p className="font-semibold text-gray-900">{object.passportDate}</p>
-            </div>
+          <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 space-y-1">
+            <p className="text-[11px] uppercase tracking-wide text-slate-500">Тип воды</p>
+            <p className="font-semibold">{formatWaterType}</p>
           </div>
-          <div className="flex items-center gap-2 p-2.5 bg-slate-50 rounded-xl">
-            <MapPin className="w-4 h-4 text-gray-600" />
-            <div className="text-xs">
-              <p className="text-[10px] text-gray-500 uppercase tracking-wide">Координаты</p>
-              <p className="font-semibold text-gray-900">
-                {object.coordinates.lat.toFixed(1)}°, {object.coordinates.lng.toFixed(1)}°
-              </p>
-            </div>
+          <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 space-y-1">
+            <p className="text-[11px] uppercase tracking-wide text-slate-500">Фауна</p>
+            <p className="font-semibold">{formatFauna}</p>
+          </div>
+          <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 space-y-1">
+            <p className="text-[11px] uppercase tracking-wide text-slate-500">Дата паспорта</p>
+            <p className="font-semibold">{object.passportDate}</p>
+          </div>
+          <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 space-y-1">
+            <p className="text-[11px] uppercase tracking-wide text-slate-500">Координаты</p>
+            <p className="font-semibold">{formatCoordinates(object.coordinates.lat, object.coordinates.lng)}</p>
           </div>
         </div>
 
@@ -144,4 +140,15 @@ export function ObjectCard({ object, onClose, onCompare, isInCompare, canViewPas
       </div>
     </div>
   )
+}
+
+function formatCoordinates(lat: number, lon: number) {
+  const format = (value: number, axis: 'lat' | 'lon') => {
+    const abs = Math.abs(value)
+    const degrees = Math.floor(abs)
+    const minutes = Math.round((abs - degrees) * 60)
+    const suffix = axis === 'lat' ? (value >= 0 ? 'с. ш.' : 'ю. ш.') : value >= 0 ? 'в. д.' : 'з. д.'
+    return `${degrees}°${minutes.toString().padStart(2, '0')}′ ${suffix}`
+  }
+  return `${format(lat, 'lat')}, ${format(lon, 'lon')}`
 }

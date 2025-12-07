@@ -11,8 +11,16 @@ import { ClusterChart } from '@widgets/ai/ClusterChart'
 import { ForecastChart } from '@widgets/ai/ForecastChart'
 import { ForecastTable } from '@widgets/ai/ForecastTable'
 import { AnomalyHeatmap } from '@widgets/ai/AnomalyHeatmap'
+import { PredictResultCard } from '@widgets/ai/PredictResultCard'
 import { CORE_NAV_ITEMS } from '@shared/config/navigation'
-import { type AnomalyPoint, type ClusterPoint, type ForecastPoint, type PredictFormData, type PredictionResult } from '@entities/ai/types'
+import {
+  type AnomalyPoint,
+  type AnomalyStats,
+  type ClusterPoint,
+  type ForecastPoint,
+  type PredictFormData,
+  type PredictionResult,
+} from '@entities/ai/types'
 
 const initialForm: PredictFormData = {
   name: 'Object-101',
@@ -36,6 +44,7 @@ export const AIAnalyticsPage = () => {
   const [clusters, setClusters] = useState<ClusterPoint[]>([])
   const [forecast, setForecast] = useState<ForecastPoint[]>([])
   const [anomalies, setAnomalies] = useState<AnomalyPoint[]>([])
+  const [anomalyStats, setAnomalyStats] = useState<AnomalyStats | null>(null)
   const [objects, setObjects] = useState<ClusterPoint[]>([])
   const [uploadMessage, setUploadMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -61,6 +70,8 @@ export const AIAnalyticsPage = () => {
       if (preds[horizon] !== undefined) return Number(preds[horizon])
       if (horizon === '60_months' && preds['24_months'] !== undefined) return Number(preds['24_months'])
     }
+    const forecastMatch = forecast.find((point) => point.label === horizon || point.title === horizon)
+    if (forecastMatch) return Number(forecastMatch.value ?? 0)
     if (forecast.length) {
       const last = forecast[forecast.length - 1]
       return Number(last.value ?? 0)
@@ -106,18 +117,33 @@ export const AIAnalyticsPage = () => {
           value: Number(item.value ?? item.prediction ?? item[1] ?? 0),
           lower: item.lower ?? item.lower_conf ?? item.lower_bound,
           upper: item.upper ?? item.upper_conf ?? item.upper_bound,
+          label: item.label,
+          title: item.title,
+          horizon_months: item.horizon_months,
         }))
         .filter((d) => d.date)
     }
     if (raw.series && Array.isArray(raw.series)) {
       return raw.series
         .map((item: any) => ({
-          date: item.date ?? '',
+          date: item.date ?? item.title ?? item.label ?? '',
           value: Number(item.value ?? 0),
           lower: item.lower,
           upper: item.upper,
+          label: item.label,
+          title: item.title,
+          horizon_months: item.horizon_months,
         }))
         .filter((d: ForecastPoint) => d.date)
+    }
+    if (typeof raw === 'object') {
+      return Object.entries(raw)
+        .map(([key, value]) => ({
+          date: key,
+          label: key,
+          value: Number(value ?? 0),
+        }))
+        .filter((d) => d.date)
     }
     return []
   }
@@ -125,12 +151,13 @@ export const AIAnalyticsPage = () => {
   const loadAnalytics = async () => {
     setBusy((b) => ({ ...b, analytics: true }))
     setError(null)
-    const [summaryRes, clustersRes, forecastRes, anomaliesRes, objectsRes] = await Promise.all([
+    const [summaryRes, clustersRes, forecastRes, anomaliesRes, objectsRes, anomalyStatsRes] = await Promise.all([
       getJson<Record<string, unknown>>('/ai/summary'),
       getJson<ClusterPoint[]>('/ai/clusters'),
       getJson<any>('/ai/forecast'),
       getJson<AnomalyPoint[]>('/ai/anomalies'),
       getJson<ClusterPoint[]>('/ai/objects'),
+      getJson<AnomalyStats>('/ai/anomalies/stats'),
     ])
 
     if ('data' in summaryRes) setSummary(summaryRes.data)
@@ -138,13 +165,15 @@ export const AIAnalyticsPage = () => {
     if ('data' in forecastRes) setForecast(normalizeForecast(forecastRes.data))
     if ('data' in anomaliesRes) setAnomalies(anomaliesRes.data)
     if ('data' in objectsRes) setObjects(objectsRes.data)
+    if ('data' in anomalyStatsRes) setAnomalyStats(anomalyStatsRes.data)
 
     const firstError =
       ('error' in summaryRes && summaryRes.error) ||
       ('error' in clustersRes && clustersRes.error) ||
       ('error' in forecastRes && forecastRes.error) ||
       ('error' in anomaliesRes && anomaliesRes.error) ||
-      ('error' in objectsRes && objectsRes.error)
+      ('error' in objectsRes && objectsRes.error) ||
+      ('error' in anomalyStatsRes && anomalyStatsRes.error)
     if (firstError) setError(firstError)
     setBusy((b) => ({ ...b, analytics: false }))
   }
@@ -242,8 +271,7 @@ export const AIAnalyticsPage = () => {
               />
               {prediction && (
                 <div className="mt-4">
-                  <h3 className="text-lg font-semibold mb-2">Результат</h3>
-                  <div className="bg-slate-900 text-slate-50 text-xs rounded-xl p-4 overflow-x-auto">{JSON.stringify(prediction, null, 2)}</div>
+                  <PredictResultCard result={prediction} />
                 </div>
               )}
             </Card>
@@ -291,7 +319,7 @@ export const AIAnalyticsPage = () => {
               {clusters.length ? <ClusterChart data={clusters} /> : <p className="text-sm text-slate-600">Нет данных. Обновите аналитику.</p>}
             </Card>
             <Card title="Аномалии" subtitle="GET /ai/anomalies">
-              <AnomalyHeatmap data={anomalies} />
+              <AnomalyHeatmap data={anomalies} stats={anomalyStats} />
             </Card>
           </section>
 

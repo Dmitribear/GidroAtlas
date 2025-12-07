@@ -3,6 +3,7 @@ from __future__ import annotations
 """Central analytics service orchestrating dedicated domain services."""
 
 import io
+from datetime import datetime
 from typing import Any, Dict, List
 
 import pandas as pd
@@ -59,7 +60,27 @@ class AnalyticsService:
         return self.cluster_service.build(self.risk_service.dataset_with_predictions)
 
     def forecast(self) -> Dict[str, Any]:
-        return self.forecast_service.predict(self.risk_service.dataset_with_predictions)
+        forecasts = self.forecast_service.predict(self.risk_service.dataset_with_predictions)
+        if not forecasts:
+            return {"series": [], "raw": {}}
+        series: List[Dict[str, Any]] = []
+        base = pd.Timestamp(datetime.utcnow()).normalize()
+        for key, value in sorted(forecasts.items(), key=lambda item: self._months_from_key(item[0])):
+            months = self._months_from_key(key)
+            future_date = base + pd.DateOffset(months=months)
+            score = round(float(value), 3)
+            series.append(
+                {
+                    "label": key,
+                    "title": self._horizon_title(months),
+                    "date": future_date.strftime("%Y-%m"),
+                    "horizon_months": months,
+                    "value": score,
+                    "lower": round(max(0.0, score - 0.07), 3),
+                    "upper": round(min(1.0, score + 0.07), 3),
+                }
+            )
+        return {"series": series, "raw": forecasts}
 
     def anomalies(self) -> List[Dict[str, Any]]:
         return self.anomaly_service.detect(self.risk_service.dataset_with_predictions)
@@ -126,4 +147,19 @@ class AnalyticsService:
         frame = frame.copy()
         frame["condition"] = conditions
         return frame
+
+    @staticmethod
+    def _months_from_key(key: str) -> int:
+        digits = "".join(ch for ch in key if ch.isdigit())
+        return int(digits or 0)
+
+    @staticmethod
+    def _horizon_title(months: int) -> str:
+        if months < 12:
+            return f"{months} мес."
+        years = months // 12
+        rest = months % 12
+        if rest == 0:
+            return f"{years} г."
+        return f"{years} г. {rest} мес."
 

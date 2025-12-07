@@ -60,6 +60,13 @@ function buildPopupHtml(obj: any) {
 
   const badgeBg = conditionBadgeBg[conditionValue] || '#E2E8F0'
   const badgeFontColor = conditionBadgeColor[conditionValue] || '#475569'
+  const waterType = (obj.water_type ?? obj.waterType) === 'fresh' ? 'Пресная' : 'Непресная'
+  const fauna = (obj.fauna ?? obj.hasFauna) ? 'Есть' : 'Нет'
+  const passportDate = obj.passport_date ?? obj.passportDate ?? ''
+  const coords = formatCoordinates(
+    Number(obj.latitude ?? obj.coordinates?.lat),
+    Number(obj.longitude ?? obj.coordinates?.lng),
+  )
 
   return `
     <div style="width:200px;border-radius:18px;overflow:hidden;box-shadow:0 14px 38px rgba(15,23,42,0.2);background:#fff;font-family:'Inter','Helvetica',sans-serif;border:1px solid #e2e8f0;">
@@ -78,8 +85,12 @@ function buildPopupHtml(obj: any) {
         <span style="align-self:flex-start;padding:4px 10px;border-radius:999px;background:${badgeBg};color:${badgeFontColor};font-size:10px;font-weight:600;">${conditionText}</span>
         <div style="font-size:15px;font-weight:700;color:#0f172a;line-height:1.3;">${name}</div>
         <div style="font-size:11px;color:#475569;font-weight:500;">${region}</div>
-        <div style="font-size:11px;color:#0f172a;">
-          ${Number(obj.latitude ?? obj.coordinates?.lat)?.toFixed(3) ?? ''}°, ${Number(obj.longitude ?? obj.coordinates?.lng)?.toFixed(3) ?? ''}°
+        <div style="font-size:11px;color:#0f172a;display:flex;flex-direction:column;gap:4px;">
+          <span>Тип воды: ${waterType}</span>
+          <span>Фауна: ${fauna}</span>
+          <span>Паспорт: ${passportDate || '—'}</span>
+          <span>Координаты: ${coords}</span>
+          <span>Состояние: ${conditionValue} (${conditionText})</span>
         </div>
         ${
           pdfLink
@@ -146,4 +157,16 @@ export function renderMarkers(map: any, objects: any[] = [], selectedId?: string
     const bounds = (window as any).L.latLngBounds(markers.map((m: any) => m.getLatLng()))
     map.fitBounds(bounds, { padding: [40, 40] })
   }
+}
+
+function formatCoordinates(latValue: number, lonValue: number) {
+  if (Number.isNaN(latValue) || Number.isNaN(lonValue)) return '—'
+  const format = (value: number, axis: 'lat' | 'lon') => {
+    const abs = Math.abs(value)
+    const degrees = Math.floor(abs)
+    const minutes = Math.round((abs - degrees) * 60)
+    const suffix = axis === 'lat' ? (value >= 0 ? 'с. ш.' : 'ю. ш.') : value >= 0 ? 'в. д.' : 'з. д.'
+    return `${degrees}°${minutes.toString().padStart(2, '0')}′ ${suffix}`
+  }
+  return `${format(latValue, 'lat')}, ${format(lonValue, 'lon')}`
 }
