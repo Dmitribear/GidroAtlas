@@ -277,7 +277,7 @@ export const AIAnalyticsPage = () => {
 
   if (!authReady) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100 text-slate-900">
+      <div className="min-h-screen bg-gradient-to-b from-amber-50 via-amber-50 to-amber-100 text-slate-900">
         <Navbar
           onLoginClick={() => setShowLogin(true)}
           userLogin={userLogin}
@@ -288,7 +288,7 @@ export const AIAnalyticsPage = () => {
         <main className="pt-28 pb-16 px-6">
           <div className="max-w-4xl mx-auto">
             <Card title="Проверяем доступ" subtitle="AI аналитика">
-              <p className="text-sm text-slate-600">Определяем права доступа...</p>
+              <p className="text-sm text-amber-800">Определяем права доступа...</p>
             </Card>
           </div>
         </main>
@@ -316,7 +316,7 @@ export const AIAnalyticsPage = () => {
 
   if (authReady && !isExpert) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100 text-slate-900">
+      <div className="min-h-screen bg-gradient-to-b from-amber-50 via-amber-50 to-amber-100 text-slate-900">
         <Navbar
           onLoginClick={() => setShowLogin(true)}
           userLogin={userLogin}
@@ -328,19 +328,19 @@ export const AIAnalyticsPage = () => {
         <main className="pt-28 pb-16 px-6">
           <div className="max-w-4xl mx-auto">
             <Card title="Доступ ограничен" subtitle="AI аналитика">
-              <p className="text-base text-slate-700">
+              <p className="text-base text-amber-800">
                 Доступ гостю запрещен. Войдите под аккаунтом эксперта, чтобы увидеть аналитику.
               </p>
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => setShowLogin(true)}
-                  className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition"
+                  className="px-4 py-2 rounded-lg bg-amber-500 text-amber-900 text-sm font-semibold hover:bg-amber-400 transition shadow-md shadow-amber-200"
                 >
                   Войти
                 </button>
                 <button
                   onClick={() => setShowRegister(true)}
-                  className="px-4 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  className="px-4 py-2 rounded-lg border border-amber-200 text-sm font-semibold text-amber-800 hover:bg-amber-100 transition"
                 >
                   Зарегистрироваться
                 </button>
@@ -373,7 +373,7 @@ export const AIAnalyticsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100 text-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-amber-50 to-amber-100 text-slate-900">
       <Navbar
         onLoginClick={() => setShowLogin(true)}
         userLogin={userLogin}
@@ -390,21 +390,26 @@ export const AIAnalyticsPage = () => {
             rightMeta={
               <button
                 onClick={loadAnalytics}
-                className="px-5 py-3 rounded-full bg-black text-white text-sm font-semibold hover:scale-[1.02] transition-transform disabled:opacity-50"
+                className="px-5 py-3 rounded-full bg-amber-500 text-amber-900 text-sm font-semibold hover:scale-[1.02] transition-transform disabled:opacity-50 shadow-md shadow-amber-200"
                 disabled={busy.analytics}
               >
                 {busy.analytics ? 'Обновляем...' : 'Обновить аналитику'}
               </button>
             }
           >
-            <p className="text-lg text-slate-600 max-w-3xl">
+            <p className="text-lg text-amber-800 max-w-3xl">
               Заполните паспорт объекта, получите риск и приоритет, загрузите свой CSV для переобучения модели и смотрите сводку, кластеры,
               прогноз и аномалии из AI-бэкенда.
             </p>
           </Card>
 
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card subtitle="Predict" title="Скоринг объекта" rightMeta={<span className="text-xs text-slate-500">POST /ai/predict</span>} className="lg:col-span-2">
+            <Card
+              subtitle="Predict"
+              title="Скоринг объекта"
+              rightMeta={<span className="text-xs text-amber-700">POST /ai/predict</span>}
+              className="lg:col-span-2"
+            >
               <PredictForm
                 value={form}
                 onChange={setForm}
@@ -442,14 +447,16 @@ export const AIAnalyticsPage = () => {
                     key={h.key}
                     onClick={() => setHorizon(h.key as typeof horizon)}
                     className={`px-3 py-2 rounded-lg text-xs font-semibold border transition ${
-                      horizon === h.key ? 'bg-fuchsia-100 border-fuchsia-300 text-fuchsia-700' : 'bg-white border-slate-200 text-slate-700'
+                      horizon === h.key
+                        ? 'bg-amber-100 border-amber-300 text-amber-700'
+                        : 'bg-white border-amber-200 text-amber-800 hover:bg-amber-50'
                     }`}
                   >
                     {h.label}
                   </button>
                 ))}
                 {horizonProbability !== null && (
-                  <span className="text-xs text-slate-600">Вероятность внимания: {horizonProbability.toFixed(3)}</span>
+                  <span className="text-xs text-amber-800">Вероятность внимания: {horizonProbability.toFixed(3)}</span>
                 )}
               </div>
               <ForecastTable data={forecast} />

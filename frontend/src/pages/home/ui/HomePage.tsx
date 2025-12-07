@@ -99,7 +99,7 @@ export const HomePage = () => {
   }
 
   return (
-    <div className="relative w-full min-h-screen bg-white text-slate-900 selection:bg-fuchsia-300 selection:text-fuchsia-900 overflow-x-hidden font-sans">
+    <div className="relative w-full min-h-screen bg-amber-50 text-slate-900 selection:bg-amber-200 selection:text-amber-900 overflow-x-hidden font-sans">
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar
           onLoginClick={() => setIsLoginOpen(true)}

@@ -104,7 +104,7 @@ export const ReportsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100 text-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-amber-50 to-amber-100 text-slate-900">
       <Navbar
         onLoginClick={() => setShowLogin(true)}
         userLogin={userLogin}
@@ -114,43 +114,43 @@ export const ReportsPage = () => {
       />
 
       <main className="pt-28 pb-16 px-6">
-        <div className="max-w-6xl mx-auto rounded-3xl bg-white shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
+        <div className="max-w-6xl mx-auto rounded-3xl bg-amber-50 shadow-xl shadow-amber-200/70 border border-amber-200 overflow-hidden">
           <div className="px-10 py-14 space-y-6">
             <div className="text-center space-y-3">
-              <p className="text-sm uppercase tracking-[0.25em] text-fuchsia-500">Отчёты</p>
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Паспорта объектов</h1>
-              <p className="text-lg text-slate-600 max-w-3xl mx-auto">
+              <p className="text-sm uppercase tracking-[0.25em] text-amber-700">Отчёты</p>
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-amber-900">Паспорта объектов</h1>
+              <p className="text-lg text-amber-800 max-w-3xl mx-auto">
                 Загружайте архив с паспортами (PDF), мы автоматически отправим их в Supabase Storage и обновим ссылки у соответствующих объектов.
                 После загрузки кнопка «Открыть PDF» на карте всегда ведёт к актуальному файлу.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-slate-900 text-white rounded-2xl px-6 py-8 space-y-4 shadow-lg shadow-slate-900/40">
+              <div className="bg-amber-700 text-amber-50 rounded-2xl px-6 py-8 space-y-4 shadow-lg shadow-amber-500/40">
                 <h2 className="text-xl font-semibold">Теперь система полностью рабочая:</h2>
                 <ul className="space-y-3 text-sm">
                   <li className="flex items-start gap-2">
-                    <span className="text-fuchsia-300 mt-1">✔</span>
+                    <span className="text-amber-100 mt-1">✔</span>
                     ZIP загружается и распаковывается на бэкенде
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-fuchsia-300 mt-1">✔</span>
+                    <span className="text-amber-100 mt-1">✔</span>
                     PDF уходят в Supabase Storage, генерируется публичная ссылка
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-fuchsia-300 mt-1">✔</span>
+                    <span className="text-amber-100 mt-1">✔</span>
                     Таблица объектов автоматически получает новую ссылку
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-fuchsia-300 mt-1">✔</span>
+                    <span className="text-amber-100 mt-1">✔</span>
                     Фронт открывает паспорт в новой вкладке и ничего не теряется
                   </li>
                 </ul>
               </div>
 
-              <div className="bg-slate-50 rounded-2xl px-6 py-8 border border-slate-100 space-y-4">
-                <h2 className="text-xl font-semibold text-slate-900">Загрузить архив</h2>
-                <p className="text-sm text-slate-600">
+              <div className="bg-white rounded-2xl px-6 py-8 border border-amber-200 space-y-4 shadow-sm shadow-amber-100">
+                <h2 className="text-xl font-semibold text-amber-900">Загрузить архив</h2>
+                <p className="text-sm text-amber-800">
                   Добавьте ZIP с файлами *.pdf. Имя файла должно совпадать с названием объекта (например, «Самаркандское водохранилище.pdf»).
                 </p>
                 {userRole !== 'expert' && (
@@ -159,7 +159,7 @@ export const ReportsPage = () => {
                 <div className="flex flex-col gap-3">
                   <button
                     onClick={handleZipButton}
-                    className="h-11 rounded-xl bg-slate-900 text-white font-semibold text-sm hover:bg-slate-800 transition disabled:opacity-60 disabled:pointer-events-none"
+                    className="h-11 rounded-xl bg-amber-500 text-amber-900 font-semibold text-sm hover:bg-amber-400 transition disabled:opacity-60 disabled:pointer-events-none shadow-md shadow-amber-200"
                     disabled={uploading}
                   >
                     {uploading ? 'Загружаем...' : 'Выбрать ZIP'}
@@ -167,8 +167,8 @@ export const ReportsPage = () => {
                   <input ref={zipInputRef} type="file" accept=".zip" className="hidden" onChange={handleZipChange} />
                   {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
                   {uploadResult && (
-                    <div className="text-sm text-slate-700 bg-white border border-slate-200 rounded-xl p-4 space-y-1">
-                      <p className="font-semibold text-slate-900">Готово!</p>
+                    <div className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-1 shadow-sm">
+                      <p className="font-semibold text-amber-900">Готово!</p>
                       <p>Обработано файлов: {uploadResult.processed}</p>
                       <p>Обновлены ссылки: {uploadResult.uploaded}</p>
                       <p>Пропущено: {uploadResult.skipped}</p>

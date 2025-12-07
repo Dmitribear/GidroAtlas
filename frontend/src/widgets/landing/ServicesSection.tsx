@@ -43,14 +43,14 @@ const SERVICES: ServiceCard[] = [
 
 export const ServicesSection: React.FC = () => {
   return (
-    <section id="services" className="py-24 px-6 bg-slate-50 rounded-[3rem] mx-4 mb-4">
+    <section id="services" className="py-24 px-6 bg-amber-50 rounded-[3rem] mx-4 mb-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-20">
-          <span className="text-fuchsia-600 font-semibold tracking-widest uppercase text-xs mb-4 block">Наши возможности</span>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-6">
+          <span className="text-amber-700 font-semibold tracking-widest uppercase text-xs mb-4 block">Наши возможности</span>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-6 text-amber-900">
             Не просто карта — аналитический инструмент.
           </h2>
-          <p className="text-slate-600 text-lg md:text-xl">
+          <p className="text-amber-800 text-lg md:text-xl">
             Мы объединяем данные, визуализацию и приоритезацию объектов для оперативной оценки.
           </p>
         </div>
@@ -61,19 +61,19 @@ export const ServicesSection: React.FC = () => {
               key={service.title}
               className={`p-10 rounded-[2rem] transition-shadow duration-300 ${
                 service.tone === 'dark'
-                  ? 'bg-slate-900 text-white shadow-xl transform md:-translate-y-4'
-                  : 'bg-white shadow-sm hover:shadow-xl'
+                  ? 'bg-amber-700 text-amber-50 shadow-xl transform md:-translate-y-4'
+                  : 'bg-amber-100 shadow-md shadow-amber-200/60 border border-amber-200/80'
               }`}
             >
               <div
                 className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 ${
-                  service.tone === 'dark' ? 'bg-fuchsia-500/20 text-fuchsia-400' : 'bg-blue-100 text-blue-600'
+                  service.tone === 'dark' ? 'bg-amber-500/25 text-amber-100' : 'bg-amber-200 text-amber-800'
                 }`}
               >
                 <i data-lucide={service.icon} className="w-7 h-7" />
               </div>
               <h3 className="text-2xl font-semibold mb-4">{service.title}</h3>
-              <p className={`leading-relaxed mb-8 ${service.tone === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+              <p className={`leading-relaxed mb-8 ${service.tone === 'dark' ? 'text-amber-100/80' : 'text-amber-900/80'}`}>
                 {service.description}
               </p>
               <ul className="space-y-3">
@@ -81,9 +81,9 @@ export const ServicesSection: React.FC = () => {
                   <li key={bullet} className="flex items-center gap-3 text-sm font-medium">
                     <i
                       data-lucide="check-circle-2"
-                      className={`w-4 h-4 ${service.tone === 'dark' ? 'text-fuchsia-500' : 'text-blue-500'}`}
+                      className={`w-4 h-4 ${service.tone === 'dark' ? 'text-amber-200' : 'text-amber-700'}`}
                     />
-                    <span className={service.tone === 'dark' ? 'text-slate-300' : 'text-slate-700'}>{bullet}</span>
+                    <span className={service.tone === 'dark' ? 'text-amber-100' : 'text-amber-900'}>{bullet}</span>
                   </li>
                 ))}
               </ul>
