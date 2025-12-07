@@ -44,11 +44,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           scrolled ? 'shadow-md' : ''
         }`}
       >
-        <a href="/" className="flex items-center gap-3 group" aria-label="На главную">
+        <a href="/" className="flex items-center gap-3 group" aria-label="GydroAtlas">
           <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-sm font-semibold tracking-wide shadow-lg shadow-slate-900/30 group-hover:scale-105 transition-transform">
-            AI
+            G
           </div>
-          <span className="sr-only">Главная</span>
+          <span className="text-lg font-semibold text-slate-900 group-hover:translate-x-0.5 transition-transform">GydroAtlas</span>
         </a>
 
         <div className="hidden md:flex gap-8 items-center">
