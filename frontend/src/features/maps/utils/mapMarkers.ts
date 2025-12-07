@@ -49,8 +49,8 @@ const icons = {
 }
 
 function buildPopupHtml(obj: any, hidePriority = false) {
-  // Используем утилиту для получения изображения
-  const image = obj.image || getObjectImage(obj.name, 'https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80')
+  // Используем утилиту для получения изображения - сначала пытаемся найти по названию, потом используем obj.image, потом default
+  const image = getObjectImage(obj.name, obj.image || '/images/objects/default.jpg')
   
   const name = obj.name ?? 'Без названия'
   const region = obj.region ?? 'Регион не указан'
@@ -82,9 +82,9 @@ function buildPopupHtml(obj: any, hidePriority = false) {
 
   return `
     <div style="width:240px;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(15,23,42,0.15);background:#fff;font-family:'Inter','Helvetica',sans-serif;border:1px solid #e2e8f0;">
-      <div style="position:relative;height:100px;overflow:hidden;">
-        <img src="${image}" alt="${name}" style="width:100%;height:100%;object-fit:cover;display:block;" />
-        <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,0.3) 100%);"></div>
+      <div style="position:relative;height:120px;overflow:hidden;">
+        <img src="${image}" alt="${name}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.src='/images/objects/default.jpg';" />
+        <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,0.4) 100%);"></div>
         <div style="position:absolute;top:6px;left:6px;padding:3px 8px;border-radius:999px;background:rgba(15,23,42,0.85);backdrop-filter:blur(4px);color:#fff;font-size:9px;font-weight:600;display:flex;align-items:center;gap:4px;">
           <span style="width:4px;height:4px;background:#60a5fa;border-radius:50%;"></span>
           ${type}
