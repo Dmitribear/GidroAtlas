@@ -48,12 +48,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-sm font-semibold tracking-wide shadow-lg shadow-slate-900/30 group-hover:scale-105 transition-transform">
             G
           </div>
-          <span className="text-lg font-semibold text-slate-900 group-hover:translate-x-0.5 transition-transform">GydroAtlas</span>
+          <span className="text-lg font-semibold text-slate-900 group-hover:translate-x-0.5 transition-transform group-hover:text-amber-700">
+            GydroAtlas
+          </span>
         </a>
 
         <div className="hidden md:flex gap-8 items-center">
           {navItems.map((item) => (
-            <a key={item.label} href={item.href} className="text-sm font-medium hover:text-fuchsia-600 transition-colors">
+            <a
+              key={item.label}
+              href={item.href}
+              className="text-sm font-medium text-slate-800 hover:text-amber-600 transition-colors"
+            >
               {item.label}
             </a>
           ))}
@@ -117,7 +123,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="group relative px-6 py-2.5 bg-black text-white rounded-full text-sm font-medium overflow-hidden hover:scale-105 transition-transform"
           >
             <span className="relative z-10">{ctaLabel}</span>
-            <div className="absolute inset-0 bg-fuchsia-500 transform scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-300 ease-out"></div>
+            <div className="absolute inset-0 bg-amber-400 transform scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-300 ease-out"></div>
           </a>
         </div>
 
