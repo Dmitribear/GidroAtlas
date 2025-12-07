@@ -34,13 +34,16 @@ interface ObjectListProps {
   compareObjects: WaterObject[]
   onToggleCompare: (obj: WaterObject) => void
   onOpenCompare: () => void
-  hasMore?: boolean
-  onLoadMore?: () => void
   isLoading?: boolean
   onOpenEditor?: () => void
   isExpert?: boolean
   canSortByPriority?: boolean
   hideCondition?: boolean
+  totalCount: number
+  currentPage: number
+  totalPages: number
+  onPageChange: (page: number) => void
+  onToggleList: () => void
 }
 
 const sortOptions: { value: SortOption; label: string }[] = [
@@ -73,13 +76,16 @@ export function ObjectList({
   compareObjects,
   onToggleCompare,
   onOpenCompare,
-  hasMore = false,
-  onLoadMore,
   isLoading = false,
   onOpenEditor,
   isExpert = false,
   canSortByPriority = true,
   hideCondition = false,
+  totalCount,
+  currentPage,
+  totalPages,
+  onPageChange,
+  onToggleList,
 }: ObjectListProps) {
   const [showSortMenu, setShowSortMenu] = useState(false)
   const sortRef = useRef<HTMLDivElement>(null)
@@ -87,6 +93,7 @@ export function ObjectList({
     () => (canSortByPriority ? sortOptions : sortOptions.filter((opt) => !opt.value.startsWith('priority_'))),
     [canSortByPriority],
   )
+  const pages = useMemo(() => Array.from({ length: totalPages }, (_, i) => i + 1), [totalPages])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -110,10 +117,16 @@ export function ObjectList({
         <div className="flex items-center justify-between gap-2">
           <div>
             <h2 className="text-base font-semibold text-gray-900">Список объектов</h2>
-            <p className="text-xs text-gray-500">{objects.length} найдено</p>
+            <p className="text-xs text-gray-500">{totalCount} найдено</p>
           </div>
 
           <div className="flex items-center gap-2" ref={sortRef}>
+            <button
+              onClick={onToggleList}
+              className="h-8 px-2 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Скрыть
+            </button>
             {isExpert && (
               <button
                 onClick={onOpenEditor}
@@ -167,6 +180,30 @@ export function ObjectList({
             Сравнить ({compareObjects.length})
           </button>
         )}
+
+        {pages.length > 1 && (
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1 flex-wrap">
+              {pages.map((page) => (
+                <button
+                  key={page}
+                  onClick={() => onPageChange(page)}
+                  disabled={isLoading || page === currentPage}
+                  className={`h-8 min-w-[2.5rem] px-2 rounded-lg border text-xs font-medium transition-colors ${
+                    page === currentPage
+                      ? 'bg-blue-600 border-blue-600 text-white'
+                      : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                  } disabled:opacity-70`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+            <div className="text-[11px] text-gray-500">
+              Страница {currentPage} из {totalPages}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
@@ -184,17 +221,6 @@ export function ObjectList({
             hideCondition={hideCondition}
           />
         ))}
-        {hasMore && (
-          <div className="pt-2">
-            <button
-              onClick={onLoadMore}
-              disabled={isLoading}
-              className="w-full h-9 flex items-center justify-center rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60"
-            >
-              {isLoading ? 'Загрузка...' : 'Показать ещё'}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   )

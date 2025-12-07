@@ -79,8 +79,9 @@ export function GidroAtlasMap() {
   const [uploadStatus, setUploadStatus] = useState<string | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [currentPage, setCurrentPage] = useState(1)
   const [showLayers, setShowLayers] = useState(true)
+  const [showList, setShowList] = useState(true)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hasManualSortRef = useRef(false)
@@ -177,6 +178,12 @@ export function GidroAtlasMap() {
     return result
   }, [objects, selectionBounds, filters])
 
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(filteredObjects.length / PAGE_SIZE)), [filteredObjects.length])
+  const paginatedObjects = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE
+    return filteredObjects.slice(start, start + PAGE_SIZE)
+  }, [filteredObjects, currentPage])
+
   const loadObjects = useCallback(async () => {
     setLoadingObjects(true)
     setFetchError(null)
@@ -194,7 +201,7 @@ export function GidroAtlasMap() {
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      setVisibleCount(PAGE_SIZE)
+      setCurrentPage(1)
       loadObjects().catch(() => {
         setFetchError('Не удалось загрузить объекты.')
         setObjects([])
@@ -205,6 +212,22 @@ export function GidroAtlasMap() {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
   }, [filters, sortBy, loadObjects])
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredObjects.length / PAGE_SIZE))
+    if (currentPage > maxPage) {
+      setCurrentPage(maxPage)
+    }
+  }, [filteredObjects.length, currentPage])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const map = (window as any)._leafletMap
+    if (map?.invalidateSize) {
+      map.invalidateSize()
+      setTimeout(() => map.invalidateSize(), 150)
+    }
+  }, [showList])
 
   const toggleCompare = (obj: WaterObject) => {
     setCompareObjects((prev) => {
@@ -443,15 +466,7 @@ export function GidroAtlasMap() {
       />
 
       <div className="pt-20 flex flex-col h-full">
-        <div className="px-4 pb-2 flex items-center gap-3 text-xs text-gray-700">
-          <button
-            onClick={requestCsvUpload}
-            className="h-8 px-3 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-xs font-medium transition-colors"
-            disabled={isUploading || !isExpert}
-          >
-            {isUploading ? 'Импортируем...' : 'Импорт CSV'}
-          </button>
-          <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleFileChange} />
+        <div className="px-4 pb-1 flex items-center gap-3 text-xs text-gray-700">
           {loadingObjects && <div className="text-gray-500">Загружаем объекты...</div>}
           {uploadStatus && !uploadError && <div className="text-gray-600">{uploadStatus}</div>}
           {uploadError && <div className="text-red-600">{uploadError}</div>}
@@ -469,10 +484,14 @@ export function GidroAtlasMap() {
           onShowCritical={() => setFilters((f) => ({ ...f, criticalOnly: !f.criticalOnly }))}
           normalizeRegion={normalizeRegionName}
           isExpert={isExpert}
+          onImportCsv={requestCsvUpload}
+          isImporting={isUploading}
         />
 
-        <div className="flex-1 flex overflow-hidden">
-          <div className="flex-1 relative">
+        <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleFileChange} />
+
+        <div className="flex-1 flex overflow-hidden relative">
+          <div className="flex-1 relative min-w-0">
             <MapView
               objects={filteredObjects}
               selectedId={selectedObject?.id}
@@ -482,11 +501,11 @@ export function GidroAtlasMap() {
               onMapClick={handleMapClick}
             />
 
-            {showLayers ? (
-              isExpert && (
-                <StatsDashboard
-                  objects={filteredObjects}
-                  totalObjects={objects.length}
+          {showLayers ? (
+            isExpert && (
+              <StatsDashboard
+                objects={filteredObjects}
+                totalObjects={objects.length}
                   onToggleLayers={() => setShowLayers(false)}
                   onSelectArea={() => {
                     setSelectionBounds(null)
@@ -521,25 +540,37 @@ export function GidroAtlasMap() {
             )}
           </div>
 
-          <ObjectList
-            objects={filteredObjects.slice(0, visibleCount)}
-            selectedId={selectedObject?.id}
-            hoveredId={hoveredId}
-            onSelect={setSelectedObject}
-            onHover={setHoveredId}
-            sortBy={sortBy}
-            onSortChange={handleSortChange}
-            compareObjects={compareObjects}
-            onToggleCompare={toggleCompare}
-            onOpenCompare={() => setShowCompare(true)}
-            hasMore={filteredObjects.length > visibleCount}
-            onLoadMore={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
-            isLoading={loadingObjects}
-            onOpenEditor={openEditor}
-            isExpert={isExpert}
-            canSortByPriority={isExpert}
-            hideCondition={!isExpert}
-          />
+          {showList ? (
+            <ObjectList
+              objects={paginatedObjects}
+              totalCount={filteredObjects.length}
+              selectedId={selectedObject?.id}
+              hoveredId={hoveredId}
+              onSelect={setSelectedObject}
+              onHover={setHoveredId}
+              sortBy={sortBy}
+              onSortChange={handleSortChange}
+              compareObjects={compareObjects}
+              onToggleCompare={toggleCompare}
+              onOpenCompare={() => setShowCompare(true)}
+              isLoading={loadingObjects}
+              onOpenEditor={openEditor}
+              isExpert={isExpert}
+              canSortByPriority={isExpert}
+              hideCondition={!isExpert}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              onToggleList={() => setShowList(false)}
+            />
+          ) : (
+            <button
+              onClick={() => setShowList(true)}
+              className="absolute top-4 right-4 z-20 h-9 px-4 bg-white/95 backdrop-blur-md rounded-lg shadow-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Показать список
+            </button>
+          )}
         </div>
 
         {showCompare && compareObjects.length > 0 && (
