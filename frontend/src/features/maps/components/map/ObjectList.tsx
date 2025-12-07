@@ -3,6 +3,7 @@
 import { Heart, GitCompare, ChevronDown, Droplets, Waves, Database, Fish } from 'lucide-react'
 import type { WaterObject, SortOption } from '../../types'
 import { getResourceTypeLabel } from '../../utils'
+import { getObjectImage } from '../../utils/objectImages'
 import { useState, useRef, useEffect, useMemo } from 'react'
 
 const EditIcon = ({ className = '' }: { className?: string }) => (
@@ -293,7 +294,7 @@ function ObjectListCard({
     >
       <div className="relative w-24 h-20 rounded-lg overflow-hidden shrink-0">
         <img
-          src={object.image || '/placeholder.svg?height=80&width=100&query=water resource'}
+          src={getObjectImage(object.name, object.image || '/placeholder.svg?height=80&width=100&query=water resource')}
           alt={object.name}
           className="w-full h-full object-cover"
         />
