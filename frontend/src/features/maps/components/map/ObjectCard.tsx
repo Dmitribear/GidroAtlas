@@ -47,20 +47,27 @@ export function ObjectCard({ object, onClose, onCompare, isInCompare, canViewPas
   const conditionDisplay = isExpert ? object.condition : '—'
   const conditionLabel = isExpert ? getConditionLabel(object.condition) : 'Доступно эксперту'
 
-  const objectImage = getObjectImage(object.name, object.image || '/placeholder.svg?height=200&width=300&query=water reservoir lake')
+  const objectImage = getObjectImage(object.name, object.image || '/images/objects/default.jpg')
 
   return (
     <div
-      className="absolute bottom-4 left-4 w-[280px] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-40"
+      className="absolute bottom-4 left-4 w-[320px] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-40"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="relative h-32">
+      <div className="relative h-48">
         <img
           src={objectImage}
           alt={object.name}
           className="w-full h-full object-cover"
+          onError={(e) => {
+            // Fallback на default.jpg если изображение не загрузилось
+            const target = e.target as HTMLImageElement
+            if (target.src !== '/images/objects/default.jpg') {
+              target.src = '/images/objects/default.jpg'
+            }
+          }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
         <button
           onClick={onClose}
@@ -69,10 +76,15 @@ export function ObjectCard({ object, onClose, onCompare, isInCompare, canViewPas
           <X className="w-3.5 h-3.5 text-gray-600" />
         </button>
 
-        <div className="absolute top-2 left-2 px-2.5 py-1 bg-black/70 backdrop-blur-sm rounded-full text-[10px] font-semibold text-white flex items-center gap-1.5">
-          <ResourceTypeIcon type={object.resourceType} className="w-3 h-3" />
+        <div className="absolute top-3 left-3 px-3 py-1.5 bg-black/80 backdrop-blur-sm rounded-full text-[11px] font-semibold text-white flex items-center gap-2">
+          <ResourceTypeIcon type={object.resourceType} className="w-3.5 h-3.5" />
           {getResourceTypeLabel(object.resourceType)}
         </div>
+        {object.priority && (
+          <div className="absolute top-3 right-3 px-2.5 py-1 bg-indigo-100/90 backdrop-blur-sm rounded-full text-[10px] font-bold text-indigo-700">
+            P{typeof object.priority === 'number' ? object.priority : object.priority}
+          </div>
+        )}
       </div>
 
       <div className="p-3 space-y-3">
