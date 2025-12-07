@@ -48,7 +48,7 @@ async def upload_passport_zip(
       continue
 
     normalized_name = file_name.replace("_", " ").replace("-", " ").strip()
-    obj = await repo.get_by_name(normalized_name)
+    obj = await repo.find_by_similar_name(normalized_name)
     if obj is None:
       summary["skipped"] = int(summary["skipped"]) + 1
       continue

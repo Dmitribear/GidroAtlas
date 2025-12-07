@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List
 
-import numpy as np
+import pandas as pd
 from joblib import dump
 from sklearn.ensemble import RandomForestRegressor
 
@@ -51,7 +51,11 @@ class RiskForecaster:
             month = (month + 1) % 12
             if month == 0:
                 year += 1
-            features = np.array([[year, month, avg_condition, avg_age]])
+            # Keep feature names consistent with training to avoid sklearn warnings.
+            features = pd.DataFrame(
+                [[year, month, avg_condition, avg_age]],
+                columns=["year_index", "month_index", "avg_condition", "avg_passport_age"],
+            )
             pred = float(self.model.predict(features)[0])
             predictions.append(max(0.0, min(1.0, pred)))
 
