@@ -15,6 +15,9 @@ type ApiWaterObject = {
   longitude: number
   pdf_url?: string | null
   priority?: number | null
+  priority_category?: 'high' | 'medium' | 'low' | null
+  priority_score?: number | null
+  marker_color?: string | null
 }
 
 const WATER_TYPE_TO_API: Record<string, string> = { fresh: 'fresh', saline: 'non_fresh' }
@@ -63,10 +66,15 @@ function mapSort(sortBy: SortOption) {
 
 function mapApiObject(item: ApiWaterObject): WaterObject {
   const priorityValue = item.priority ?? null
-  const priority =
+  const priorityCategoryRaw = typeof item.priority_category === 'string' ? item.priority_category.toLowerCase() : null
+  const priorityFromCategory = ['high', 'medium', 'low'].includes(priorityCategoryRaw ?? '')
+    ? (priorityCategoryRaw as WaterObject['priority'])
+    : null
+  const fallbackPriority =
     priorityValue && PRIORITY_FROM_API[priorityValue as keyof typeof PRIORITY_FROM_API]
       ? PRIORITY_FROM_API[priorityValue as keyof typeof PRIORITY_FROM_API]
       : 'low'
+  const priority = priorityFromCategory ?? fallbackPriority
 
   return {
     id: item.id,
@@ -78,6 +86,9 @@ function mapApiObject(item: ApiWaterObject): WaterObject {
     passportDate: item.passport_date,
     condition: Number(item.technical_condition) as WaterObject['condition'],
     priority,
+    priorityCategory: priorityFromCategory ?? priority,
+    priorityScore: typeof item.priority_score === 'number' ? item.priority_score : undefined,
+    markerColor: item.marker_color ?? undefined,
     coordinates: { lat: Number(item.latitude), lng: Number(item.longitude) },
     position: { x: 0, y: 0 },
     image: '/placeholder.svg',

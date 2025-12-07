@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { CORE_NAV_ITEMS } from '@shared/config/navigation'
 import type { NavItem } from './types'
 import { Button } from './ui/Button'
 
@@ -12,12 +13,6 @@ interface NavbarProps {
   navItems?: NavItem[]
 }
 
-const DEFAULT_NAV_ITEMS: NavItem[] = [
-  { label: 'Главная', href: '#hero' },
-  { label: 'Возможности', href: '#services' },
-  { label: 'Контакты', href: '#contact' },
-]
-
 const navFontStyle: React.CSSProperties = {
   fontFamily: '"Ubuntu", system-ui, -apple-system, sans-serif',
   fontWeight: 500,
@@ -28,9 +23,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   userLogin,
   onLogout,
   onProfile,
-  ctaLabel = 'Войти в панель управления',
-  ctaHref = '/maps',
-  navItems = DEFAULT_NAV_ITEMS,
+  ctaLabel = 'AI-аналитика',
+  ctaHref = '/ai',
+  navItems = CORE_NAV_ITEMS,
 }) => {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -49,16 +44,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           scrolled ? 'shadow-md' : ''
         }`}
       >
-        <a href="/" className="text-2xl font-medium tracking-tighter flex items-center gap-2">
-          <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white text-sm font-bold">
+        <a href="/" className="flex items-center gap-3 group" aria-label="GydroAtlas">
+          <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-sm font-semibold tracking-wide shadow-lg shadow-slate-900/30 group-hover:scale-105 transition-transform">
             G
           </div>
-          GidroAtlas
+          <span className="text-lg font-semibold text-slate-900 group-hover:translate-x-0.5 transition-transform group-hover:text-amber-700">
+            GydroAtlas
+          </span>
         </a>
 
         <div className="hidden md:flex gap-8 items-center">
           {navItems.map((item) => (
-            <a key={item.label} href={item.href} className="text-sm font-medium hover:text-fuchsia-600 transition-colors">
+            <a
+              key={item.label}
+              href={item.href}
+              className="text-sm font-medium text-slate-800 hover:text-amber-600 transition-colors"
+            >
               {item.label}
             </a>
           ))}
@@ -122,7 +123,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="group relative px-6 py-2.5 bg-black text-white rounded-full text-sm font-medium overflow-hidden hover:scale-105 transition-transform"
           >
             <span className="relative z-10">{ctaLabel}</span>
-            <div className="absolute inset-0 bg-fuchsia-500 transform scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-300 ease-out"></div>
+            <div className="absolute inset-0 bg-amber-400 transform scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-300 ease-out"></div>
           </a>
         </div>
 

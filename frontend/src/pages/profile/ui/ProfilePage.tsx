@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Navbar } from '@widgets/landing/Navbar'
 import { getJson } from '@shared/api/http'
 import { supabase } from '@shared/api/supabaseClient'
+import { CORE_NAV_ITEMS } from '@shared/config/navigation'
 
 type UserRole = 'guest' | 'expert'
 
@@ -9,6 +10,8 @@ export const ProfilePage: React.FC = () => {
   const [userLogin, setUserLogin] = useState<string | null>(null)
   const [role, setRole] = useState<UserRole>('guest')
   const [status, setStatus] = useState<'loading' | 'ready'>('loading')
+  const [roleSaving, setRoleSaving] = useState(false)
+  const [roleError, setRoleError] = useState<string | null>(null)
 
   useEffect(() => {
     const token = localStorage.getItem('access_token')
@@ -45,6 +48,19 @@ export const ProfilePage: React.FC = () => {
     setRole(value === 'expert' ? 'expert' : 'guest')
   }
 
+  const changeRole = async (nextRole: UserRole) => {
+    if (!userLogin) return
+    setRoleSaving(true)
+    setRoleError(null)
+    const { error } = await supabase.from('users').update({ role: nextRole }).eq('login', userLogin)
+    if (error) {
+      setRoleError('Не удалось обновить роль')
+    } else {
+      setRole(nextRole)
+    }
+    setRoleSaving(false)
+  }
+
   const handleLogout = () => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('user_login')
@@ -61,12 +77,7 @@ export const ProfilePage: React.FC = () => {
         userLogin={userLogin}
         onLogout={handleLogout}
         onProfile={() => (window.location.href = '/profile')}
-        ctaLabel="На главную"
-        ctaHref="/"
-        navItems={[
-          { label: 'Карта', href: '/maps' },
-          { label: 'Отчёты', href: '/reports' },
-        ]}
+        navItems={CORE_NAV_ITEMS}
       />
 
       <div className="pt-24 max-w-4xl mx-auto px-4">
@@ -90,6 +101,33 @@ export const ProfilePage: React.FC = () => {
               <div className="p-4 rounded-xl border border-gray-100 bg-gray-50">
                 <p className="text-xs text-gray-500 mb-1">Роль</p>
                 <p className="text-lg font-semibold text-gray-900">{role === 'expert' ? 'Эксперт' : 'Гость'}</p>
+                <div className="mt-3 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => changeRole('guest')}
+                    disabled={roleSaving}
+                    className={`flex-1 px-4 py-2 rounded-lg border text-sm font-semibold transition ${
+                      role === 'guest'
+                        ? 'bg-warm-400 text-gray-900 border-warm-500 shadow'
+                        : 'bg-white text-gray-700 border-gray-200 hover:border-warm-300'
+                    } disabled:opacity-60`}
+                  >
+                    Гость
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => changeRole('expert')}
+                    disabled={roleSaving}
+                    className={`flex-1 px-4 py-2 rounded-lg border text-sm font-semibold transition ${
+                      role === 'expert'
+                        ? 'bg-warm-400 text-gray-900 border-warm-500 shadow'
+                        : 'bg-white text-gray-700 border-gray-200 hover:border-warm-300'
+                    } disabled:opacity-60`}
+                  >
+                    Эксперт
+                  </button>
+                </div>
+                {roleError && <p className="mt-2 text-sm text-red-600">{roleError}</p>}
               </div>
             </div>
           )}

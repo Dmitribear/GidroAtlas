@@ -8,17 +8,20 @@ import { PredictForm } from '@features/ai/predict-form/ui/PredictForm'
 import { DatasetUpload } from '@features/ai/dataset-upload/ui/DatasetUpload'
 import { SummaryList } from '@widgets/ai/SummaryList'
 import { ClusterChart } from '@widgets/ai/ClusterChart'
-import { ForecastChart } from '@widgets/ai/ForecastChart'
 import { ForecastTable } from '@widgets/ai/ForecastTable'
+import { ForecastChart } from '@widgets/ai/ForecastChart'
 import { AnomalyHeatmap } from '@widgets/ai/AnomalyHeatmap'
-import { type AnomalyPoint, type ClusterPoint, type ForecastPoint, type PredictFormData, type PredictionResult } from '@entities/ai/types'
-
-const navItems = [
-  { label: 'Главная', href: '/' },
-  { label: 'Карты', href: '/maps' },
-  { label: 'Отчеты', href: '/reports' },
-  { label: 'AI-аналитика', href: '/ai' },
-]
+import { PredictResultCard } from '@widgets/ai/PredictResultCard'
+import { CORE_NAV_ITEMS } from '@shared/config/navigation'
+import {
+  type AnomalyPoint,
+  type AnomalyStats,
+  type ClusterPoint,
+  type ForecastPoint,
+  type PredictFormData,
+  type PredictionResult,
+} from '@entities/ai/types'
+import { resolveUserRole, type UserRole } from '@shared/lib/userRole'
 
 const initialForm: PredictFormData = {
   name: 'Object-101',
@@ -36,12 +39,15 @@ export const AIAnalyticsPage = () => {
   const [showLogin, setShowLogin] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
   const [userLogin, setUserLogin] = useState<string | null>(localStorage.getItem('user_login'))
+  const [userRole, setUserRole] = useState<UserRole>('guest')
+  const [authReady, setAuthReady] = useState(false)
 
   const [prediction, setPrediction] = useState<PredictionResult | null>(null)
   const [summary, setSummary] = useState<Record<string, unknown> | null>(null)
   const [clusters, setClusters] = useState<ClusterPoint[]>([])
   const [forecast, setForecast] = useState<ForecastPoint[]>([])
   const [anomalies, setAnomalies] = useState<AnomalyPoint[]>([])
+  const [anomalyStats, setAnomalyStats] = useState<AnomalyStats | null>(null)
   const [objects, setObjects] = useState<ClusterPoint[]>([])
   const [uploadMessage, setUploadMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -52,14 +58,26 @@ export const AIAnalyticsPage = () => {
     analytics: false,
     upload: false,
   })
+  const accessDeniedMessage = 'Доступ гостю запрещен. Авторизуйтесь как эксперт, чтобы смотреть аналитику.'
+  const isExpert = userRole === 'expert'
 
-  const plots = useMemo(
-    () => ({
-      risk: `${API_ROOT}/plots/risk_distribution`,
-      clusters: `${API_ROOT}/plots/cluster_map`,
-    }),
-    [],
-  )
+  useEffect(() => {
+    const token = localStorage.getItem('access_token')
+    const login = localStorage.getItem('user_login')
+    resolveUserRole(token, login)
+      .then(({ login: nextLogin, role }) => {
+        setUserLogin(nextLogin)
+        setUserRole(role)
+        if (role !== 'expert') {
+          setError(accessDeniedMessage)
+        }
+      })
+      .catch(() => {
+        setUserRole('guest')
+        setError(accessDeniedMessage)
+      })
+      .finally(() => setAuthReady(true))
+  }, [])
 
   const horizonProbability = useMemo(() => {
     const preds = prediction?.sorted_predictions
@@ -67,6 +85,8 @@ export const AIAnalyticsPage = () => {
       if (preds[horizon] !== undefined) return Number(preds[horizon])
       if (horizon === '60_months' && preds['24_months'] !== undefined) return Number(preds['24_months'])
     }
+    const forecastMatch = forecast.find((point) => point.label === horizon || point.title === horizon)
+    if (forecastMatch) return Number(forecastMatch.value ?? 0)
     if (forecast.length) {
       const last = forecast[forecast.length - 1]
       return Number(last.value ?? 0)
@@ -74,10 +94,13 @@ export const AIAnalyticsPage = () => {
     return null
   }, [prediction, horizon, forecast])
 
-  const handleAuthSuccess = (token: string, login: string) => {
+  const handleAuthSuccess = async (token: string, login: string) => {
     localStorage.setItem('access_token', token)
     localStorage.setItem('user_login', login)
     setUserLogin(login)
+    const resolved = await resolveUserRole(token, login).catch(() => ({ role: 'guest' as UserRole, login }))
+    setUserRole(resolved.role)
+    setAuthReady(true)
     setShowLogin(false)
     setShowRegister(false)
   }
@@ -86,9 +109,22 @@ export const AIAnalyticsPage = () => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('user_login')
     setUserLogin(null)
+    setUserRole('guest')
+    setError(accessDeniedMessage)
+    setPrediction(null)
+    setSummary(null)
+    setClusters([])
+    setForecast([])
+    setAnomalies([])
+    setObjects([])
+    setAnomalyStats(null)
   }
 
   const handlePredict = async (payload: PredictFormData) => {
+    if (!isExpert) {
+      setError(accessDeniedMessage)
+      return
+    }
     setBusy((b) => ({ ...b, predict: true }))
     setError(null)
     const res = await postJson<PredictionResult>('/ai/predict', {
@@ -112,18 +148,33 @@ export const AIAnalyticsPage = () => {
           value: Number(item.value ?? item.prediction ?? item[1] ?? 0),
           lower: item.lower ?? item.lower_conf ?? item.lower_bound,
           upper: item.upper ?? item.upper_conf ?? item.upper_bound,
+          label: item.label,
+          title: item.title,
+          horizon_months: item.horizon_months,
         }))
         .filter((d) => d.date)
     }
     if (raw.series && Array.isArray(raw.series)) {
       return raw.series
         .map((item: any) => ({
-          date: item.date ?? '',
+          date: item.date ?? item.title ?? item.label ?? '',
           value: Number(item.value ?? 0),
           lower: item.lower,
           upper: item.upper,
+          label: item.label,
+          title: item.title,
+          horizon_months: item.horizon_months,
         }))
         .filter((d: ForecastPoint) => d.date)
+    }
+    if (typeof raw === 'object') {
+      return Object.entries(raw)
+        .map(([key, value]) => ({
+          date: key,
+          label: key,
+          value: Number(value ?? 0),
+        }))
+        .filter((d) => d.date)
     }
     return []
   }
@@ -131,12 +182,13 @@ export const AIAnalyticsPage = () => {
   const loadAnalytics = async () => {
     setBusy((b) => ({ ...b, analytics: true }))
     setError(null)
-    const [summaryRes, clustersRes, forecastRes, anomaliesRes, objectsRes] = await Promise.all([
+    const [summaryRes, clustersRes, forecastRes, anomaliesRes, objectsRes, anomalyStatsRes] = await Promise.all([
       getJson<Record<string, unknown>>('/ai/summary'),
       getJson<ClusterPoint[]>('/ai/clusters'),
       getJson<any>('/ai/forecast'),
       getJson<AnomalyPoint[]>('/ai/anomalies'),
       getJson<ClusterPoint[]>('/ai/objects'),
+      getJson<AnomalyStats>('/ai/anomalies/stats'),
     ])
 
     if ('data' in summaryRes) setSummary(summaryRes.data)
@@ -144,19 +196,25 @@ export const AIAnalyticsPage = () => {
     if ('data' in forecastRes) setForecast(normalizeForecast(forecastRes.data))
     if ('data' in anomaliesRes) setAnomalies(anomaliesRes.data)
     if ('data' in objectsRes) setObjects(objectsRes.data)
+    if ('data' in anomalyStatsRes) setAnomalyStats(anomalyStatsRes.data)
 
     const firstError =
       ('error' in summaryRes && summaryRes.error) ||
       ('error' in clustersRes && clustersRes.error) ||
       ('error' in forecastRes && forecastRes.error) ||
       ('error' in anomaliesRes && anomaliesRes.error) ||
-      ('error' in objectsRes && objectsRes.error)
+      ('error' in objectsRes && objectsRes.error) ||
+      ('error' in anomalyStatsRes && anomalyStatsRes.error)
     if (firstError) setError(firstError)
     setBusy((b) => ({ ...b, analytics: false }))
   }
 
   const handleUpload = async (file: File | null) => {
     if (!file) return
+    if (!isExpert) {
+      setError(accessDeniedMessage)
+      return
+    }
     setBusy((b) => ({ ...b, upload: true }))
     setUploadMessage(null)
     setError(null)
@@ -184,8 +242,21 @@ export const AIAnalyticsPage = () => {
   }
 
   useEffect(() => {
+    if (!authReady) return
+    if (!isExpert) {
+      setPrediction(null)
+      setSummary(null)
+      setClusters([])
+      setForecast([])
+      setAnomalies([])
+      setObjects([])
+      setAnomalyStats(null)
+      setError(accessDeniedMessage)
+      return
+    }
+    setError(null)
     loadAnalytics().catch(() => {})
-  }, [])
+  }, [authReady, isExpert])
 
   useEffect(() => {
     if (objects.length && (!form.name || form.name === initialForm.name)) {
@@ -204,16 +275,111 @@ export const AIAnalyticsPage = () => {
     }
   }, [objects])
 
+  if (!authReady) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-amber-50 via-amber-50 to-amber-100 text-slate-900">
+        <Navbar
+          onLoginClick={() => setShowLogin(true)}
+          userLogin={userLogin}
+          onLogout={handleLogout}
+          onProfile={() => (window.location.href = '/profile')}
+          navItems={CORE_NAV_ITEMS}
+        />
+        <main className="pt-28 pb-16 px-6">
+          <div className="max-w-4xl mx-auto">
+            <Card title="Проверяем доступ" subtitle="AI аналитика">
+              <p className="text-sm text-amber-800">Определяем права доступа...</p>
+            </Card>
+          </div>
+        </main>
+        <LoginModal
+          isOpen={showLogin}
+          onClose={() => setShowLogin(false)}
+          onOpenRegister={() => {
+            setShowLogin(false)
+            setShowRegister(true)
+          }}
+          onAuthSuccess={handleAuthSuccess}
+        />
+        <RegisterModal
+          isOpen={showRegister}
+          onClose={() => setShowRegister(false)}
+          onSwitchToLogin={() => {
+            setShowRegister(false)
+            setShowLogin(true)
+          }}
+          onAuthSuccess={handleAuthSuccess}
+        />
+      </div>
+    )
+  }
+
+  if (authReady && !isExpert) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-amber-50 via-amber-50 to-amber-100 text-slate-900">
+        <Navbar
+          onLoginClick={() => setShowLogin(true)}
+          userLogin={userLogin}
+          onLogout={handleLogout}
+          onProfile={() => (window.location.href = '/profile')}
+          navItems={CORE_NAV_ITEMS}
+        />
+
+        <main className="pt-28 pb-16 px-6">
+          <div className="max-w-4xl mx-auto">
+            <Card title="Доступ ограничен" subtitle="AI аналитика">
+              <p className="text-base text-amber-800">
+                Доступ гостю запрещен. Войдите под аккаунтом эксперта, чтобы увидеть аналитику.
+              </p>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowLogin(true)}
+                  className="px-4 py-2 rounded-lg bg-amber-500 text-amber-900 text-sm font-semibold hover:bg-amber-400 transition shadow-md shadow-amber-200"
+                >
+                  Войти
+                </button>
+                <button
+                  onClick={() => setShowRegister(true)}
+                  className="px-4 py-2 rounded-lg border border-amber-200 text-sm font-semibold text-amber-800 hover:bg-amber-100 transition"
+                >
+                  Зарегистрироваться
+                </button>
+              </div>
+            </Card>
+          </div>
+        </main>
+
+        <LoginModal
+          isOpen={showLogin}
+          onClose={() => setShowLogin(false)}
+          onOpenRegister={() => {
+            setShowLogin(false)
+            setShowRegister(true)
+          }}
+          onAuthSuccess={handleAuthSuccess}
+        />
+
+        <RegisterModal
+          isOpen={showRegister}
+          onClose={() => setShowRegister(false)}
+          onSwitchToLogin={() => {
+            setShowRegister(false)
+            setShowLogin(true)
+          }}
+          onAuthSuccess={handleAuthSuccess}
+        />
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100 text-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-amber-50 to-amber-100 text-slate-900">
       <Navbar
         onLoginClick={() => setShowLogin(true)}
         userLogin={userLogin}
         onLogout={handleLogout}
         onProfile={() => (window.location.href = '/profile')}
-        navItems={navItems}
-        ctaLabel="Открыть карту"
-        ctaHref="/maps"
+        navItems={CORE_NAV_ITEMS}
       />
 
       <main className="pt-28 pb-16 px-6">
@@ -224,21 +390,26 @@ export const AIAnalyticsPage = () => {
             rightMeta={
               <button
                 onClick={loadAnalytics}
-                className="px-5 py-3 rounded-full bg-black text-white text-sm font-semibold hover:scale-[1.02] transition-transform disabled:opacity-50"
+                className="px-5 py-3 rounded-full bg-amber-500 text-amber-900 text-sm font-semibold hover:scale-[1.02] transition-transform disabled:opacity-50 shadow-md shadow-amber-200"
                 disabled={busy.analytics}
               >
                 {busy.analytics ? 'Обновляем...' : 'Обновить аналитику'}
               </button>
             }
           >
-            <p className="text-lg text-slate-600 max-w-3xl">
+            <p className="text-lg text-amber-800 max-w-3xl">
               Заполните паспорт объекта, получите риск и приоритет, загрузите свой CSV для переобучения модели и смотрите сводку, кластеры,
               прогноз и аномалии из AI-бэкенда.
             </p>
           </Card>
 
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card subtitle="Predict" title="Скоринг объекта" rightMeta={<span className="text-xs text-slate-500">POST /ai/predict</span>} className="lg:col-span-2">
+            <Card
+              subtitle="Predict"
+              title="Скоринг объекта"
+              rightMeta={<span className="text-xs text-amber-700">POST /ai/predict</span>}
+              className="lg:col-span-2"
+            >
               <PredictForm
                 value={form}
                 onChange={setForm}
@@ -250,14 +421,13 @@ export const AIAnalyticsPage = () => {
               />
               {prediction && (
                 <div className="mt-4">
-                  <h3 className="text-lg font-semibold mb-2">Результат</h3>
-                  <div className="bg-slate-900 text-slate-50 text-xs rounded-xl p-4 overflow-x-auto">{JSON.stringify(prediction, null, 2)}</div>
+                  <PredictResultCard result={prediction} />
                 </div>
               )}
             </Card>
 
             <Card subtitle="Dataset" title="Загрузка CSV">
-              <DatasetUpload uploading={busy.upload} message={uploadMessage} error={error} onUpload={handleUpload} objects={objects} plots={plots} />
+              <DatasetUpload uploading={busy.upload} message={uploadMessage} error={error} onUpload={handleUpload} objects={objects} />
             </Card>
           </section>
 
@@ -277,14 +447,16 @@ export const AIAnalyticsPage = () => {
                     key={h.key}
                     onClick={() => setHorizon(h.key as typeof horizon)}
                     className={`px-3 py-2 rounded-lg text-xs font-semibold border transition ${
-                      horizon === h.key ? 'bg-fuchsia-100 border-fuchsia-300 text-fuchsia-700' : 'bg-white border-slate-200 text-slate-700'
+                      horizon === h.key
+                        ? 'bg-amber-100 border-amber-300 text-amber-700'
+                        : 'bg-white border-amber-200 text-amber-800 hover:bg-amber-50'
                     }`}
                   >
                     {h.label}
                   </button>
                 ))}
                 {horizonProbability !== null && (
-                  <span className="text-xs text-slate-600">Вероятность внимания: {horizonProbability.toFixed(3)}</span>
+                  <span className="text-xs text-amber-800">Вероятность внимания: {horizonProbability.toFixed(3)}</span>
                 )}
               </div>
               <ForecastTable data={forecast} />
@@ -299,7 +471,7 @@ export const AIAnalyticsPage = () => {
               {clusters.length ? <ClusterChart data={clusters} /> : <p className="text-sm text-slate-600">Нет данных. Обновите аналитику.</p>}
             </Card>
             <Card title="Аномалии" subtitle="GET /ai/anomalies">
-              <AnomalyHeatmap data={anomalies} />
+              <AnomalyHeatmap data={anomalies} stats={anomalyStats} />
             </Card>
           </section>
 

@@ -22,8 +22,14 @@ class WaterObjectCreate(BaseModel):
   priority: int | None = None
 
 
+PriorityCategory = Literal["low", "medium", "high"]
+
+
 class WaterObjectResponse(WaterObjectCreate):
   id: str
+  priority_category: PriorityCategory | None = None
+  priority_score: int | None = None
+  marker_color: str | None = None
 
 
 class WaterObjectQuery(BaseModel):

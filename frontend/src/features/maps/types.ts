@@ -22,6 +22,9 @@ export interface WaterObject {
   passportDate: string
   condition: 1 | 2 | 3 | 4 | 5
   priority: MapPriority
+  priorityCategory?: MapPriority
+  priorityScore?: number
+  markerColor?: string
   coordinates: MapCoordinates
   position: MapPosition
   image: string

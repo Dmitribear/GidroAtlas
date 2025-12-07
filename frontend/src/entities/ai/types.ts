@@ -28,6 +28,7 @@ export type ClusterPoint = {
   lon?: number
   risk_score?: number
   priority_score?: number
+  condition?: number
   [key: string]: unknown
 }
 
@@ -36,6 +37,9 @@ export type ForecastPoint = {
   value: number
   lower?: number
   upper?: number
+  label?: string
+  title?: string
+  horizon_months?: number
 }
 
 export type AnomalyPoint = {
@@ -45,4 +49,11 @@ export type AnomalyPoint = {
   lat?: number
   lon?: number
   [key: string]: unknown
+}
+
+export type AnomalyStats = {
+  mean_score?: number
+  std_score?: number
+  top_score?: number
+  threshold?: number
 }

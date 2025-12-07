@@ -3,7 +3,8 @@
 import { Heart, GitCompare, ChevronDown, Droplets, Waves, Database, Fish } from 'lucide-react'
 import type { WaterObject, SortOption } from '../../types'
 import { getResourceTypeLabel } from '../../utils'
-import { useState, useRef, useEffect } from 'react'
+import { getObjectImage } from '../../utils/objectImages'
+import { useState, useRef, useEffect, useMemo } from 'react'
 
 const EditIcon = ({ className = '' }: { className?: string }) => (
   <svg
@@ -34,11 +35,16 @@ interface ObjectListProps {
   compareObjects: WaterObject[]
   onToggleCompare: (obj: WaterObject) => void
   onOpenCompare: () => void
-  hasMore?: boolean
-  onLoadMore?: () => void
   isLoading?: boolean
   onOpenEditor?: () => void
   isExpert?: boolean
+  canSortByPriority?: boolean
+  hideCondition?: boolean
+  totalCount: number
+  currentPage: number
+  totalPages: number
+  onPageChange: (page: number) => void
+  onToggleList: () => void
 }
 
 const sortOptions: { value: SortOption; label: string }[] = [
@@ -71,14 +77,24 @@ export function ObjectList({
   compareObjects,
   onToggleCompare,
   onOpenCompare,
-  hasMore = false,
-  onLoadMore,
   isLoading = false,
   onOpenEditor,
   isExpert = false,
+  canSortByPriority = true,
+  hideCondition = false,
+  totalCount,
+  currentPage,
+  totalPages,
+  onPageChange,
+  onToggleList,
 }: ObjectListProps) {
   const [showSortMenu, setShowSortMenu] = useState(false)
   const sortRef = useRef<HTMLDivElement>(null)
+  const availableSortOptions = useMemo(
+    () => (canSortByPriority ? sortOptions : sortOptions.filter((opt) => !opt.value.startsWith('priority_'))),
+    [canSortByPriority],
+  )
+  const pages = useMemo(() => Array.from({ length: totalPages }, (_, i) => i + 1), [totalPages])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -90,16 +106,28 @@ export function ObjectList({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  useEffect(() => {
+    if (!availableSortOptions.some((opt) => opt.value === sortBy) && availableSortOptions.length > 0) {
+      onSortChange(availableSortOptions[0].value)
+    }
+  }, [availableSortOptions, onSortChange, sortBy])
+
   return (
     <div className="w-96 border-l border-gray-200 flex flex-col bg-white shrink-0 relative">
       <div className="p-3 border-b border-gray-100">
         <div className="flex items-center justify-between gap-2">
           <div>
             <h2 className="text-base font-semibold text-gray-900">Список объектов</h2>
-            <p className="text-xs text-gray-500">{objects.length} найдено</p>
+            <p className="text-xs text-gray-500">{totalCount} найдено</p>
           </div>
 
           <div className="flex items-center gap-2" ref={sortRef}>
+            <button
+              onClick={onToggleList}
+              className="h-8 px-2 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Скрыть
+            </button>
             {isExpert && (
               <button
                 onClick={onOpenEditor}
@@ -115,12 +143,16 @@ export function ObjectList({
                 onClick={() => setShowSortMenu(!showSortMenu)}
                 className="text-xs text-gray-600 hover:text-gray-900 flex items-center gap-1"
               >
-                <span className="font-medium">{sortOptions.find((s) => s.value === sortBy)?.label}</span>
+                <span className="font-medium">
+                  {availableSortOptions.find((s) => s.value === sortBy)?.label ||
+                    availableSortOptions[0]?.label ||
+                    'Сортировка'}
+                </span>
                 <ChevronDown className="w-3 h-3" />
               </button>
               {showSortMenu && (
                 <div className="absolute top-full right-0 mt-1 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1">
-                  {sortOptions.map((opt) => (
+                  {availableSortOptions.map((opt) => (
                     <button
                       key={opt.value}
                       onClick={() => {
@@ -149,6 +181,30 @@ export function ObjectList({
             Сравнить ({compareObjects.length})
           </button>
         )}
+
+        {pages.length > 1 && (
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1 flex-wrap">
+              {pages.map((page) => (
+                <button
+                  key={page}
+                  onClick={() => onPageChange(page)}
+                  disabled={isLoading || page === currentPage}
+                  className={`h-8 min-w-[2.5rem] px-2 rounded-lg border text-xs font-medium transition-colors ${
+                    page === currentPage
+                      ? 'bg-blue-600 border-blue-600 text-white'
+                      : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                  } disabled:opacity-70`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+            <div className="text-[11px] text-gray-500">
+              Страница {currentPage} из {totalPages}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
@@ -163,19 +219,9 @@ export function ObjectList({
             onMouseEnter={() => onHover(obj.id)}
             onMouseLeave={() => onHover(null)}
             onToggleCompare={() => onToggleCompare(obj)}
+            hideCondition={hideCondition}
           />
         ))}
-        {hasMore && (
-          <div className="pt-2">
-            <button
-              onClick={onLoadMore}
-              disabled={isLoading}
-              className="w-full h-9 flex items-center justify-center rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60"
-            >
-              {isLoading ? 'Загрузка...' : 'Показать ещё'}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   )
@@ -190,6 +236,7 @@ interface ObjectListCardProps {
   onMouseEnter: () => void
   onMouseLeave: () => void
   onToggleCompare: () => void
+  hideCondition?: boolean
 }
 
 function getConditionBgColor(condition: number): string {
@@ -225,8 +272,16 @@ function ObjectListCard({
   onMouseEnter,
   onMouseLeave,
   onToggleCompare,
+  hideCondition = false,
 }: ObjectListCardProps) {
-  const conditionBgColor = getConditionBgColor(object.condition)
+  const conditionBgColor = hideCondition ? 'bg-gray-200' : getConditionBgColor(object.condition)
+  const conditionLabel = hideCondition
+    ? 'Доступно эксперту'
+    : object.condition <= 2
+      ? 'Хорошее'
+      : object.condition <= 3
+        ? 'Удовлетворительное'
+        : 'Аварийное'
 
   return (
     <div
@@ -239,14 +294,16 @@ function ObjectListCard({
     >
       <div className="relative w-24 h-20 rounded-lg overflow-hidden shrink-0">
         <img
-          src={object.image || '/placeholder.svg?height=80&width=100&query=water resource'}
+          src={getObjectImage(object.name, object.image || '/placeholder.svg?height=80&width=100&query=water resource')}
           alt={object.name}
           className="w-full h-full object-cover"
         />
         <div
-          className={`absolute top-1 left-1 w-5 h-5 rounded-full ${conditionBgColor} text-white text-[10px] font-bold flex items-center justify-center`}
+          className={`absolute top-1 left-1 w-5 h-5 rounded-full ${conditionBgColor} ${
+            hideCondition ? 'text-gray-600' : 'text-white'
+          } text-[10px] font-bold flex items-center justify-center`}
         >
-          {object.condition}
+          {hideCondition ? '—' : object.condition}
         </div>
         <button
           onClick={(e) => {
@@ -270,8 +327,10 @@ function ObjectListCard({
         <h3 className="text-sm font-semibold text-gray-900 truncate">{object.name}</h3>
         <p className="text-[10px] text-gray-500 truncate">{object.region}</p>
         <div className="flex items-center gap-2 mt-1">
-          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium text-white ${conditionBgColor}`}>
-            {object.condition <= 2 ? 'Хорошее' : object.condition <= 3 ? 'Удовлетворительное' : 'Аварийное'}
+          <span
+            className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${hideCondition ? 'text-gray-600 bg-gray-100' : 'text-white'} ${conditionBgColor}`}
+          >
+            {hideCondition ? '—' : conditionLabel}
           </span>
           <span className="text-[10px] text-gray-400">
             {object.waterType === 'fresh' ? 'Пресная' : 'Непресная'}

@@ -1,4 +1,6 @@
 import asyncio
+import re
+from difflib import SequenceMatcher
 from typing import Any
 from uuid import uuid4
 
@@ -67,6 +69,50 @@ class WaterObjectRepositorySupabase:
       return None
     return self._to_entity(record)
 
+  async def get_by_name(self, name: str) -> WaterObject | None:
+    qb = self._client.raw.table(self._table).select("*").ilike("name", name).limit(1)
+    rows = await asyncio.to_thread(qb.execute)
+    data = rows.data[0] if rows.data else None
+    if data:
+      return self._to_entity(data)
+    # fallback: try exact match to account for case-sensitive names
+    qb = self._client.raw.table(self._table).select("*").eq("name", name).limit(1)
+    rows = await asyncio.to_thread(qb.execute)
+    data = rows.data[0] if rows.data else None
+    if data:
+      return self._to_entity(data)
+    return None
+
+  async def find_by_similar_name(self, name: str, *, min_ratio: float = 0.6) -> WaterObject | None:
+    """Find the closest matching object name using fuzzy comparison."""
+    target = self._normalize_name(name)
+
+    # First try straightforward ilike/eq matches
+    direct = await self.get_by_name(name)
+    if direct:
+      return direct
+
+    qb = self._client.raw.table(self._table).select("*")
+    rows = await asyncio.to_thread(qb.execute)
+    best: tuple[float, dict[str, Any]] | None = None
+    for row in rows.data or []:
+      candidate = self._normalize_name(row["name"])
+      if candidate == target:
+        return self._to_entity(row)
+      ratio = SequenceMatcher(None, target, candidate).ratio()
+      if target in candidate or candidate in target:
+        ratio = max(ratio, 0.95)  # strong preference for substring matches
+      if ratio >= min_ratio and (best is None or ratio > best[0]):
+        best = (ratio, row)
+
+    if best:
+      return self._to_entity(best[1])
+    return None
+
+  async def update_pdf_url(self, object_id: str, pdf_url: str) -> None:
+    qb = self._client.raw.table(self._table).update({"pdf_url": pdf_url}).eq("id", object_id)
+    await asyncio.to_thread(qb.execute)
+
   def _to_entity(self, row: dict[str, Any]) -> WaterObject:
     return WaterObject(
       id=str(row["id"]),
@@ -89,3 +135,8 @@ class WaterObjectRepositorySupabase:
 
       return date.fromisoformat(value)
     return value
+
+  def _normalize_name(self, name: str) -> str:
+    cleaned = name.replace("_", " ").replace("-", " ")
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    return cleaned.strip().lower()

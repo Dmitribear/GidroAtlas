@@ -21,6 +21,8 @@ class AnomalyRecord:
     region: str
     resource_type: str
     score: float
+    lat: float | None = None
+    lon: float | None = None
 
 
 @dataclass
@@ -74,6 +76,8 @@ class AnomalyDetector:
                 region=row["region"],
                 resource_type=row["resource_type"],
                 score=round(float(row["anomaly_score"]), 3),
+                lat=float(row["lat"]) if pd.notna(row["lat"]) else None,
+                lon=float(row["lon"]) if pd.notna(row["lon"]) else None,
             )
             for _, row in anomalies.iterrows()
         ]

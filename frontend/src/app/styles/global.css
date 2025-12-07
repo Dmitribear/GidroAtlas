@@ -1,6 +1,6 @@
 :root {
   color: #0f172a;
-  background-color: #ffffff;
+  background-color: #fff7e6;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   line-height: 1.6;
   font-weight: 400;
@@ -13,7 +13,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: #ffffff;
+  background: #fff7e6;
   color: #0f172a;
 }
 
@@ -27,8 +27,8 @@ a {
 }
 
 ::selection {
-  background: rgba(217, 70, 239, 0.2);
-  color: #0f172a;
+  background: rgba(251, 191, 36, 0.3);
+  color: #92400e;
 }
 
 /* Landing helpers */

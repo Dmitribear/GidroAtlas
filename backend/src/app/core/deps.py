@@ -6,6 +6,7 @@ from app.core.config import get_settings
 from app.infrastructure.supabase.client import SupabaseClient
 from app.infrastructure.supabase.repositories import UserRepositorySupabase
 from app.infrastructure.supabase.water_objects import WaterObjectRepositorySupabase
+from app.infrastructure.supabase.computed_metrics import ComputedMetricsRepositorySupabase
 
 http_bearer = HTTPBearer(auto_error=False)
 
@@ -23,6 +24,12 @@ def get_water_object_repository(
   client: SupabaseClient = Depends(get_supabase_client),
 ) -> WaterObjectRepositorySupabase:
   return WaterObjectRepositorySupabase(client)
+
+
+def get_computed_metrics_repository(
+  client: SupabaseClient = Depends(get_supabase_client),
+) -> ComputedMetricsRepositorySupabase:
+  return ComputedMetricsRepositorySupabase(client)
 
 
 def get_current_identity(

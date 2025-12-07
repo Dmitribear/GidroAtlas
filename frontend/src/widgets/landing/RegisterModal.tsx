@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { postJson } from '@shared/api/http'
+import { supabase } from '@shared/api/supabaseClient'
 
 interface RegisterModalProps {
   isOpen: boolean
@@ -7,6 +8,8 @@ interface RegisterModalProps {
   onSwitchToLogin: () => void
   onAuthSuccess: (token: string, login: string) => void
 }
+
+type UserRole = 'guest' | 'expert'
 
 const loginRegex = /^[A-Za-z0-9]+$/
 const passwordRegex = /^[A-Za-z0-9]+$/
@@ -17,6 +20,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, o
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [role, setRole] = useState<UserRole>('guest')
 
   const validationError = useMemo(() => {
     if (login.trim().length < 8) return 'Логин должен быть не короче 8 символов'
@@ -37,8 +41,9 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, o
       return
     }
     setLoading(true)
+    const cleanLogin = login.trim()
     const result = await postJson<{ access_token: string }>('/auth/register', {
-      login: login.trim(),
+      login: cleanLogin,
       password,
     })
     setLoading(false)
@@ -48,8 +53,13 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, o
       return
     }
 
+    const { error: roleError } = await supabase.from('users').update({ role }).eq('login', cleanLogin)
+    if (roleError) {
+      console.warn('Failed to update role', roleError)
+    }
+
     setSuccess('Регистрация прошла успешно')
-    onAuthSuccess(result.data.access_token, login.trim())
+    onAuthSuccess(result.data.access_token, cleanLogin)
   }
 
   return (
@@ -70,6 +80,22 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, o
         </div>
 
         <div className="p-8">
+          <div className="flex gap-3 mb-6">
+            {(['guest', 'expert'] as UserRole[]).map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setRole(option)}
+                className={`flex-1 px-4 py-2 rounded-xl border text-sm font-semibold transition ${
+                  role === option
+                    ? 'bg-warm-400 text-gray-900 border-warm-500 shadow'
+                    : 'bg-white text-gray-700 border-gray-200 hover:border-warm-300'
+                }`}
+              >
+                {option === 'guest' ? 'Гость' : 'Эксперт'}
+              </button>
+            ))}
+          </div>
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Логин</label>

@@ -10,19 +10,13 @@ import { RegisterModal } from '@widgets/landing/RegisterModal'
 import { getJson, postJson } from '@shared/api/http'
 import { supabase } from '@shared/api/supabaseClient'
 import { useLucide } from '@shared/lib/useLucide'
+import { HOME_NAV_ITEMS } from '@shared/config/navigation'
 
 export const HomePage = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
   const [userLogin, setUserLogin] = useState<string | null>(null)
   const [authError, setAuthError] = useState<string | null>(null)
-  const navItems = [
-    { label: 'Гидроатлас', href: '#hero' },
-    { label: 'Сервисы', href: '#services' },
-    { label: 'AI-анализ', href: '/ai' },
-    { label: 'Карта', href: '/maps' },
-    { label: 'Отчеты', href: '/reports' },
-  ]
 
   useLucide()
 
@@ -105,14 +99,14 @@ export const HomePage = () => {
   }
 
   return (
-    <div className="relative w-full min-h-screen bg-white text-slate-900 selection:bg-fuchsia-300 selection:text-fuchsia-900 overflow-x-hidden font-sans">
+    <div className="relative w-full min-h-screen bg-amber-50 text-slate-900 selection:bg-amber-200 selection:text-amber-900 overflow-x-hidden font-sans">
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar
           onLoginClick={() => setIsLoginOpen(true)}
           userLogin={userLogin}
           onLogout={handleLogout}
           onProfile={handleProfile}
-          navItems={navItems}
+          navItems={HOME_NAV_ITEMS}
         />
 
         <main className="flex-grow flex flex-col">

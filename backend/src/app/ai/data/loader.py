@@ -51,8 +51,8 @@ def _normalize(df: pd.DataFrame) -> pd.DataFrame:
     frame["fauna"] = frame["fauna"].map(_coerce_bool).astype(int)
     frame["condition"] = frame["condition"].astype(int)
     frame["passport_date"] = pd.to_datetime(frame["passport_date"]).dt.date
-    frame["lat"] = frame["lat"].astype(float)
-    frame["lon"] = frame["lon"].astype(float)
+    frame["lat"] = frame["lat"].apply(_coerce_coordinate("lat"))
+    frame["lon"] = frame["lon"].apply(_coerce_coordinate("lon"))
     return frame
 
 
@@ -73,4 +73,21 @@ def _coerce_bool(value) -> int:
         if normalized in falsy:
             return 0
     raise ValueError(f"Unsupported boolean literal for fauna: {value!r}")
+
+
+def _coerce_coordinate(column: str):
+    def _convert(value):
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            normalized = value.strip().replace(",", ".")
+            if not normalized:
+                raise ValueError(f"Empty value for {column}")
+            try:
+                return float(normalized)
+            except ValueError as exc:  # noqa: BLE001
+                raise ValueError(f"Unsupported numeric literal for {column}: {value!r}") from exc
+        raise ValueError(f"Unsupported numeric literal for {column}: {value!r}")
+
+    return _convert
 

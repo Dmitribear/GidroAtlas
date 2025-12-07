@@ -8,7 +8,6 @@ import { ObjectCard } from './map/ObjectCard'
 import { StatsDashboard } from './map/StatsDashboard'
 import { ComparePanel } from './map/ComparePanel'
 import type { WaterObject, Filters, SortOption } from '../types'
-import { waterObjects as fallbackObjects } from '../data/waterObjects'
 import { normalizeForMarkers } from '../utils'
 import { renderMarkers } from '../utils/mapMarkers'
 import { fetchWaterObjects, importCsvToWaterObjects } from '../api'
@@ -18,6 +17,7 @@ import { LoginModal } from '@widgets/landing/LoginModal'
 import { RegisterModal } from '@widgets/landing/RegisterModal'
 import { normalizeRegionName } from '../constants'
 import { supabase } from '@shared/api/supabaseClient'
+import { CORE_NAV_ITEMS } from '@shared/config/navigation'
 
 type Bounds = { south: number; west: number; north: number; east: number }
 type UserRole = 'guest' | 'expert'
@@ -79,12 +79,15 @@ export function GidroAtlasMap() {
   const [uploadStatus, setUploadStatus] = useState<string | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [currentPage, setCurrentPage] = useState(1)
   const [showLayers, setShowLayers] = useState(true)
+  const [showList, setShowList] = useState(true)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasManualSortRef = useRef(false)
 
   const isExpert = userRole === 'expert'
+  const prevIsExpertRef = useRef(isExpert)
 
   const fetchRole = useCallback(async (login: string | null) => {
     if (!login) {
@@ -124,22 +127,15 @@ export function GidroAtlasMap() {
           localStorage.setItem('user_role', roleFromApi)
         } else {
           fetchRole(res.data.login).catch(() => {
-            if (userRole === 'guest') {
-              setUserRole('expert') // fallback: treat authenticated as expert if role unknown
-              localStorage.setItem('user_role', 'expert')
-            }
+            setUserRole('guest')
+            localStorage.setItem('user_role', 'guest')
           })
         }
       }
     }
     sync().catch(() => {})
     if (storedLogin && !storedRole) {
-      fetchRole(storedLogin).catch(() => {
-        if (storedToken) {
-          setUserRole('expert')
-          localStorage.setItem('user_role', 'expert')
-        }
-      })
+      fetchRole(storedLogin).catch(() => setUserRole('guest'))
     }
   }, [fetchRole])
 
@@ -182,16 +178,21 @@ export function GidroAtlasMap() {
     return result
   }, [objects, selectionBounds, filters])
 
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(filteredObjects.length / PAGE_SIZE)), [filteredObjects.length])
+  const paginatedObjects = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE
+    return filteredObjects.slice(start, start + PAGE_SIZE)
+  }, [filteredObjects, currentPage])
+
   const loadObjects = useCallback(async () => {
     setLoadingObjects(true)
     setFetchError(null)
     const result = await fetchWaterObjects(filters, sortBy, token, 0, API_LIMIT)
     if (result.error) {
       setFetchError(result.error)
-      setObjects(fallbackObjects)
+      setObjects([])
     } else {
-      const data = result.data.length ? result.data : fallbackObjects
-      setObjects(data)
+      setObjects(result.data)
     }
     setLoadingObjects(false)
   }, [filters, sortBy, token])
@@ -200,10 +201,10 @@ export function GidroAtlasMap() {
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      setVisibleCount(PAGE_SIZE)
+      setCurrentPage(1)
       loadObjects().catch(() => {
         setFetchError('Не удалось загрузить объекты.')
-        setObjects(fallbackObjects)
+        setObjects([])
         setLoadingObjects(false)
       })
     }, 250)
@@ -211,6 +212,22 @@ export function GidroAtlasMap() {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
   }, [filters, sortBy, loadObjects])
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredObjects.length / PAGE_SIZE))
+    if (currentPage > maxPage) {
+      setCurrentPage(maxPage)
+    }
+  }, [filteredObjects.length, currentPage])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const map = (window as any)._leafletMap
+    if (map?.invalidateSize) {
+      map.invalidateSize()
+      setTimeout(() => map.invalidateSize(), 150)
+    }
+  }, [showList])
 
   const toggleCompare = (obj: WaterObject) => {
     setCompareObjects((prev) => {
@@ -232,12 +249,26 @@ export function GidroAtlasMap() {
     const map = (window as any)._leafletMap
     if (!map) return
     const combinedMarkers = [...normalizeForMarkers(filteredObjects), ...filteredCsvMarkers]
-    renderMarkers(map, combinedMarkers, selectedObject?.id)
-  }, [filteredCsvMarkers, filteredObjects, selectedObject?.id])
+    renderMarkers(map, combinedMarkers, selectedObject?.id, !isExpert)
+  }, [filteredCsvMarkers, filteredObjects, selectedObject?.id, isExpert])
 
   useEffect(() => {
     updateLeafletMarkers()
   }, [updateLeafletMarkers])
+
+  useEffect(() => {
+    if (!isExpert && (sortBy === 'priority_desc' || sortBy === 'priority_asc')) {
+      hasManualSortRef.current = false
+      setSortBy('name_asc')
+    }
+  }, [isExpert, sortBy])
+
+  useEffect(() => {
+    if (isExpert && !prevIsExpertRef.current && !hasManualSortRef.current) {
+      setSortBy('priority_desc')
+    }
+    prevIsExpertRef.current = isExpert
+  }, [isExpert])
 
   // highlight first match on search
   useEffect(() => {
@@ -350,6 +381,11 @@ export function GidroAtlasMap() {
     await handleCsvFile(file)
   }
 
+  const handleSortChange = (nextSort: SortOption) => {
+    hasManualSortRef.current = true
+    setSortBy(nextSort)
+  }
+
   const requestCsvUpload = () => {
     if (!isExpert) return
     fileInputRef.current?.click()
@@ -362,6 +398,8 @@ export function GidroAtlasMap() {
     setToken(null)
     setUserLogin(null)
     setUserRole('guest')
+    hasManualSortRef.current = false
+    setSortBy('name_asc')
   }
 
   const handleAuthSuccess = (nextToken: string, login: string) => {
@@ -424,24 +462,11 @@ export function GidroAtlasMap() {
         userLogin={userLogin}
         onLogout={handleLogout}
         onProfile={() => (window.location.href = '/profile')}
-        ctaLabel="На главную"
-        ctaHref="/"
-        navItems={[
-          { label: 'В профиль', href: '/profile' },
-          { label: 'Отчёты', href: '/reports' },
-        ]}
+        navItems={CORE_NAV_ITEMS}
       />
 
       <div className="pt-20 flex flex-col h-full">
-        <div className="px-4 pb-2 flex items-center gap-3 text-xs text-gray-700">
-          <button
-            onClick={requestCsvUpload}
-            className="h-8 px-3 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-xs font-medium transition-colors"
-            disabled={isUploading || !isExpert}
-          >
-            {isUploading ? 'Импортируем...' : 'Импорт CSV'}
-          </button>
-          <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleFileChange} />
+        <div className="px-4 pb-1 flex items-center gap-3 text-xs text-gray-700">
           {loadingObjects && <div className="text-gray-500">Загружаем объекты...</div>}
           {uploadStatus && !uploadError && <div className="text-gray-600">{uploadStatus}</div>}
           {uploadError && <div className="text-red-600">{uploadError}</div>}
@@ -459,10 +484,14 @@ export function GidroAtlasMap() {
           onShowCritical={() => setFilters((f) => ({ ...f, criticalOnly: !f.criticalOnly }))}
           normalizeRegion={normalizeRegionName}
           isExpert={isExpert}
+          onImportCsv={requestCsvUpload}
+          isImporting={isUploading}
         />
 
-        <div className="flex-1 flex overflow-hidden">
-          <div className="flex-1 relative">
+        <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleFileChange} />
+
+        <div className="flex-1 flex overflow-hidden relative">
+          <div className="flex-1 relative min-w-0">
             <MapView
               objects={filteredObjects}
               selectedId={selectedObject?.id}
@@ -472,22 +501,24 @@ export function GidroAtlasMap() {
               onMapClick={handleMapClick}
             />
 
-            {showLayers ? (
+          {showLayers ? (
+            isExpert && (
               <StatsDashboard
                 objects={filteredObjects}
                 totalObjects={objects.length}
-                onToggleLayers={() => setShowLayers(false)}
-                onSelectArea={() => {
-                  setSelectionBounds(null)
-                  setIsSelectingArea(true)
-                }}
-                onClearArea={() => {
-                  setSelectionBounds(null)
-                  setIsSelectingArea(false)
-                }}
-                hasSelection={!!selectionBounds}
-                isSelecting={isSelectingArea}
-              />
+                  onToggleLayers={() => setShowLayers(false)}
+                  onSelectArea={() => {
+                    setSelectionBounds(null)
+                    setIsSelectingArea(true)
+                  }}
+                  onClearArea={() => {
+                    setSelectionBounds(null)
+                    setIsSelectingArea(false)
+                  }}
+                  hasSelection={!!selectionBounds}
+                  isSelecting={isSelectingArea}
+                />
+              )
             ) : (
               <button
                 onClick={() => setShowLayers(true)}
@@ -504,27 +535,42 @@ export function GidroAtlasMap() {
                 onCompare={() => toggleCompare(selectedObject)}
                 isInCompare={compareObjects.some((o) => o.id === selectedObject.id)}
                 canViewPassport={isExpert}
+                isExpert={isExpert}
               />
             )}
           </div>
 
-          <ObjectList
-            objects={filteredObjects.slice(0, visibleCount)}
-            selectedId={selectedObject?.id}
-            hoveredId={hoveredId}
-            onSelect={setSelectedObject}
-            onHover={setHoveredId}
-            sortBy={sortBy}
-            onSortChange={setSortBy}
-            compareObjects={compareObjects}
-            onToggleCompare={toggleCompare}
-            onOpenCompare={() => setShowCompare(true)}
-            hasMore={filteredObjects.length > visibleCount}
-            onLoadMore={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
-            isLoading={loadingObjects}
-            onOpenEditor={openEditor}
-            isExpert={isExpert}
-          />
+          {showList ? (
+            <ObjectList
+              objects={paginatedObjects}
+              totalCount={filteredObjects.length}
+              selectedId={selectedObject?.id}
+              hoveredId={hoveredId}
+              onSelect={setSelectedObject}
+              onHover={setHoveredId}
+              sortBy={sortBy}
+              onSortChange={handleSortChange}
+              compareObjects={compareObjects}
+              onToggleCompare={toggleCompare}
+              onOpenCompare={() => setShowCompare(true)}
+              isLoading={loadingObjects}
+              onOpenEditor={openEditor}
+              isExpert={isExpert}
+              canSortByPriority={isExpert}
+              hideCondition={!isExpert}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              onToggleList={() => setShowList(false)}
+            />
+          ) : (
+            <button
+              onClick={() => setShowList(true)}
+              className="absolute top-4 right-4 z-20 h-9 px-4 bg-white/95 backdrop-blur-md rounded-lg shadow-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Показать список
+            </button>
+          )}
         </div>
 
         {showCompare && compareObjects.length > 0 && (
