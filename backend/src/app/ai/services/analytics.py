@@ -68,7 +68,18 @@ class AnalyticsService:
         for key, value in sorted(forecasts.items(), key=lambda item: self._months_from_key(item[0])):
             months = self._months_from_key(key)
             future_date = base + pd.DateOffset(months=months)
-            score = round(float(value), 3)
+            
+            # Поддержка как старого формата (просто float), так и нового (dict с интервалами)
+            if isinstance(value, dict) and "value" in value:
+                score = round(float(value["value"]), 3)
+                lower = round(float(value.get("lower", max(0.0, score - 0.07))), 3)
+                upper = round(float(value.get("upper", min(1.0, score + 0.07))), 3)
+            else:
+                # Обратная совместимость со старым форматом
+                score = round(float(value), 3)
+                lower = round(max(0.0, score - 0.07), 3)
+                upper = round(min(1.0, score + 0.07), 3)
+            
             series.append(
                 {
                     "label": key,
@@ -76,8 +87,8 @@ class AnalyticsService:
                     "date": future_date.strftime("%Y-%m"),
                     "horizon_months": months,
                     "value": score,
-                    "lower": round(max(0.0, score - 0.07), 3),
-                    "upper": round(min(1.0, score + 0.07), 3),
+                    "lower": lower,
+                    "upper": upper,
                 }
             )
         return {"series": series, "raw": forecasts}
