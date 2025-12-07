@@ -83,8 +83,10 @@ export function GidroAtlasMap() {
   const [showLayers, setShowLayers] = useState(true)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasManualSortRef = useRef(false)
 
   const isExpert = userRole === 'expert'
+  const prevIsExpertRef = useRef(isExpert)
 
   const fetchRole = useCallback(async (login: string | null) => {
     if (!login) {
@@ -124,22 +126,15 @@ export function GidroAtlasMap() {
           localStorage.setItem('user_role', roleFromApi)
         } else {
           fetchRole(res.data.login).catch(() => {
-            if (userRole === 'guest') {
-              setUserRole('expert') // fallback: treat authenticated as expert if role unknown
-              localStorage.setItem('user_role', 'expert')
-            }
+            setUserRole('guest')
+            localStorage.setItem('user_role', 'guest')
           })
         }
       }
     }
     sync().catch(() => {})
     if (storedLogin && !storedRole) {
-      fetchRole(storedLogin).catch(() => {
-        if (storedToken) {
-          setUserRole('expert')
-          localStorage.setItem('user_role', 'expert')
-        }
-      })
+      fetchRole(storedLogin).catch(() => setUserRole('guest'))
     }
   }, [fetchRole])
 
@@ -231,12 +226,26 @@ export function GidroAtlasMap() {
     const map = (window as any)._leafletMap
     if (!map) return
     const combinedMarkers = [...normalizeForMarkers(filteredObjects), ...filteredCsvMarkers]
-    renderMarkers(map, combinedMarkers, selectedObject?.id)
-  }, [filteredCsvMarkers, filteredObjects, selectedObject?.id])
+    renderMarkers(map, combinedMarkers, selectedObject?.id, !isExpert)
+  }, [filteredCsvMarkers, filteredObjects, selectedObject?.id, isExpert])
 
   useEffect(() => {
     updateLeafletMarkers()
   }, [updateLeafletMarkers])
+
+  useEffect(() => {
+    if (!isExpert && (sortBy === 'priority_desc' || sortBy === 'priority_asc')) {
+      hasManualSortRef.current = false
+      setSortBy('name_asc')
+    }
+  }, [isExpert, sortBy])
+
+  useEffect(() => {
+    if (isExpert && !prevIsExpertRef.current && !hasManualSortRef.current) {
+      setSortBy('priority_desc')
+    }
+    prevIsExpertRef.current = isExpert
+  }, [isExpert])
 
   // highlight first match on search
   useEffect(() => {
@@ -349,6 +358,11 @@ export function GidroAtlasMap() {
     await handleCsvFile(file)
   }
 
+  const handleSortChange = (nextSort: SortOption) => {
+    hasManualSortRef.current = true
+    setSortBy(nextSort)
+  }
+
   const requestCsvUpload = () => {
     if (!isExpert) return
     fileInputRef.current?.click()
@@ -361,6 +375,8 @@ export function GidroAtlasMap() {
     setToken(null)
     setUserLogin(null)
     setUserRole('guest')
+    hasManualSortRef.current = false
+    setSortBy('name_asc')
   }
 
   const handleAuthSuccess = (nextToken: string, login: string) => {
@@ -467,21 +483,23 @@ export function GidroAtlasMap() {
             />
 
             {showLayers ? (
-              <StatsDashboard
-                objects={filteredObjects}
-                totalObjects={objects.length}
-                onToggleLayers={() => setShowLayers(false)}
-                onSelectArea={() => {
-                  setSelectionBounds(null)
-                  setIsSelectingArea(true)
-                }}
-                onClearArea={() => {
-                  setSelectionBounds(null)
-                  setIsSelectingArea(false)
-                }}
-                hasSelection={!!selectionBounds}
-                isSelecting={isSelectingArea}
-              />
+              isExpert && (
+                <StatsDashboard
+                  objects={filteredObjects}
+                  totalObjects={objects.length}
+                  onToggleLayers={() => setShowLayers(false)}
+                  onSelectArea={() => {
+                    setSelectionBounds(null)
+                    setIsSelectingArea(true)
+                  }}
+                  onClearArea={() => {
+                    setSelectionBounds(null)
+                    setIsSelectingArea(false)
+                  }}
+                  hasSelection={!!selectionBounds}
+                  isSelecting={isSelectingArea}
+                />
+              )
             ) : (
               <button
                 onClick={() => setShowLayers(true)}
@@ -498,6 +516,7 @@ export function GidroAtlasMap() {
                 onCompare={() => toggleCompare(selectedObject)}
                 isInCompare={compareObjects.some((o) => o.id === selectedObject.id)}
                 canViewPassport={isExpert}
+                isExpert={isExpert}
               />
             )}
           </div>
@@ -509,7 +528,7 @@ export function GidroAtlasMap() {
             onSelect={setSelectedObject}
             onHover={setHoveredId}
             sortBy={sortBy}
-            onSortChange={setSortBy}
+            onSortChange={handleSortChange}
             compareObjects={compareObjects}
             onToggleCompare={toggleCompare}
             onOpenCompare={() => setShowCompare(true)}
@@ -518,6 +537,8 @@ export function GidroAtlasMap() {
             isLoading={loadingObjects}
             onOpenEditor={openEditor}
             isExpert={isExpert}
+            canSortByPriority={isExpert}
+            hideCondition={!isExpert}
           />
         </div>
 

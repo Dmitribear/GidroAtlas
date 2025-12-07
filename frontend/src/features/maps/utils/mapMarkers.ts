@@ -36,7 +36,7 @@ const resourceLabels: Record<string, string> = {
   reservoir: 'Водохранилище',
 }
 
-function buildPopupHtml(obj: any) {
+function buildPopupHtml(obj: any, hidePriority = false) {
   const image =
     obj.image ||
     'https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=800&q=80'
@@ -44,12 +44,13 @@ function buildPopupHtml(obj: any) {
   const region = obj.region ?? 'Регион не указан'
   const typeKey = obj.resource_type ?? obj.resourceType ?? ''
   const type = resourceLabels[typeKey] || 'Ресурс'
-  const conditionValue = Number(obj.technical_condition ?? obj.condition ?? 0)
-  const conditionText = conditionLabels[conditionValue] || 'Нет данных'
+  const conditionValueRaw = Number(obj.technical_condition ?? obj.condition ?? 0)
+  const conditionValue = hidePriority ? null : conditionValueRaw
+  const conditionText = hidePriority ? 'Доступно эксперту' : conditionLabels[conditionValueRaw] || 'Нет данных'
   const pdfLink = obj.pdf_url ?? obj.pdfUrl
   const priorityRaw = obj.priority ?? ''
   let priorityLabel = ''
-  if (priorityRaw !== '' && priorityRaw !== null) {
+  if (!hidePriority && priorityRaw !== '' && priorityRaw !== null) {
     if (!Number.isNaN(Number(priorityRaw))) {
       priorityLabel = `P${priorityRaw}`
     } else {
@@ -58,8 +59,8 @@ function buildPopupHtml(obj: any) {
     }
   }
 
-  const badgeBg = conditionBadgeBg[conditionValue] || '#E2E8F0'
-  const badgeFontColor = conditionBadgeColor[conditionValue] || '#475569'
+  const badgeBg = hidePriority ? '#E2E8F0' : conditionBadgeBg[conditionValueRaw] || '#E2E8F0'
+  const badgeFontColor = hidePriority ? '#475569' : conditionBadgeColor[conditionValueRaw] || '#475569'
   const waterType = (obj.water_type ?? obj.waterType) === 'fresh' ? 'Пресная' : 'Непресная'
   const fauna = (obj.fauna ?? obj.hasFauna) ? 'Есть' : 'Нет'
   const passportDate = obj.passport_date ?? obj.passportDate ?? ''
@@ -90,7 +91,7 @@ function buildPopupHtml(obj: any) {
           <span>Фауна: ${fauna}</span>
           <span>Паспорт: ${passportDate || '—'}</span>
           <span>Координаты: ${coords}</span>
-          <span>Состояние: ${conditionValue} (${conditionText})</span>
+          <span>Состояние: ${hidePriority ? '—' : conditionValue} (${conditionText})</span>
         </div>
         ${
           pdfLink
@@ -102,7 +103,7 @@ function buildPopupHtml(obj: any) {
   `
 }
 
-export function renderMarkers(map: any, objects: any[] = [], selectedId?: string | null) {
+export function renderMarkers(map: any, objects: any[] = [], selectedId?: string | null, hidePriority = false) {
   if (typeof window === 'undefined' || typeof (window as any).L === 'undefined' || !map) {
     return
   }
@@ -122,7 +123,7 @@ export function renderMarkers(map: any, objects: any[] = [], selectedId?: string
     if (Number.isNaN(lat) || Number.isNaN(lng)) return
 
     const conditionValue = obj.technical_condition ?? obj.condition
-    const color = obj.markerColor || conditionColors[conditionValue] || '#999999'
+    const color = hidePriority ? '#ffffff' : obj.markerColor || conditionColors[conditionValue] || '#999999'
 
     const icon = (window as any).L.divIcon({
       className: '',
@@ -142,7 +143,7 @@ export function renderMarkers(map: any, objects: any[] = [], selectedId?: string
 
     const marker = (window as any).L.marker([lat, lng], { icon }).addTo(map)
 
-    marker.bindPopup(buildPopupHtml(obj), {
+    marker.bindPopup(buildPopupHtml(obj, hidePriority), {
       closeButton: false,
       offset: [0, -5],
       maxWidth: 280,
