@@ -3,6 +3,7 @@
 import { X, Droplets, Waves, Database } from 'lucide-react'
 import type { WaterObject } from '../../types'
 import { getConditionColor, getConditionLabel, getResourceTypeLabel } from '../../utils'
+import { getObjectImage } from '../../utils/objectImages'
 
 interface ComparePanelProps {
   objects: WaterObject[]
@@ -65,7 +66,7 @@ export function ComparePanel({ objects, onClose, onRemove }: ComparePanelProps) 
               <div className="flex items-start gap-3">
                 <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
                   <img
-                    src={object.image || '/placeholder.svg?height=56&width=56'}
+                    src={getObjectImage(object.name, object.image || '/placeholder.svg?height=56&width=56')}
                     alt={object.name}
                     className="w-full h-full object-cover"
                   />

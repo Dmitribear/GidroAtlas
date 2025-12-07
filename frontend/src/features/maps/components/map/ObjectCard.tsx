@@ -1,8 +1,9 @@
 "use client"
 
-import { X, MapPin, Droplets, FileText, GitCompare, Waves, Database } from 'lucide-react'
+import { X, MapPin, Droplets, FileText, GitCompare, Waves, Database, Calendar, Navigation } from 'lucide-react'
 import type { WaterObject } from '../../types'
 import { getConditionLabel, getResourceTypeLabel } from '../../utils'
+import { getObjectImage } from '../../utils/objectImages'
 
 interface ObjectCardProps {
   object: WaterObject
@@ -46,100 +47,96 @@ export function ObjectCard({ object, onClose, onCompare, isInCompare, canViewPas
   const conditionDisplay = isExpert ? object.condition : '—'
   const conditionLabel = isExpert ? getConditionLabel(object.condition) : 'Доступно эксперту'
 
+  const objectImage = getObjectImage(object.name, object.image || '/placeholder.svg?height=200&width=300&query=water reservoir lake')
+
   return (
     <div
-      className="absolute bottom-4 left-4 w-[320px] bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-40"
+      className="absolute bottom-4 left-4 w-[280px] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-40"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="relative h-40">
+      <div className="relative h-32">
         <img
-          src={object.image || '/placeholder.svg?height=200&width=300&query=water reservoir lake'}
+          src={objectImage}
           alt={object.name}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors"
+          className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center bg-white/95 backdrop-blur-sm rounded-full shadow-md hover:bg-white transition-colors"
         >
-          <X className="w-4 h-4 text-gray-600" />
+          <X className="w-3.5 h-3.5 text-gray-600" />
         </button>
 
-        <div className="absolute top-3 left-3 px-3 py-1 bg-white/90 rounded-full text-[11px] font-semibold text-gray-800 flex items-center gap-1.5 shadow">
-          <ResourceTypeIcon type={object.resourceType} className="w-3.5 h-3.5 text-blue-600" />
+        <div className="absolute top-2 left-2 px-2.5 py-1 bg-black/70 backdrop-blur-sm rounded-full text-[10px] font-semibold text-white flex items-center gap-1.5">
+          <ResourceTypeIcon type={object.resourceType} className="w-3 h-3" />
           {getResourceTypeLabel(object.resourceType)}
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
-        <div className="flex items-center gap-3">
+      <div className="p-3 space-y-3">
+        <div className="flex items-center gap-2.5">
           <span
-            className={`w-10 h-10 rounded-2xl ${conditionStyles.badgeBg} ${conditionStyles.badgeText} text-base font-bold flex items-center justify-center`}
+            className={`w-9 h-9 rounded-xl ${conditionStyles.badgeBg} ${conditionStyles.badgeText} text-sm font-bold flex items-center justify-center shrink-0`}
           >
             {conditionDisplay}
           </span>
-          <div>
-            <p className={`text-sm font-semibold ${conditionStyles.accent}`}>{conditionLabel}</p>
-            <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-              <MapPin className="w-3 h-3" />
-              {object.region}
+          <div className="min-w-0 flex-1">
+            <p className={`text-xs font-semibold ${conditionStyles.accent} leading-tight`}>{conditionLabel}</p>
+            <p className="text-[10px] text-gray-500 flex items-center gap-1 mt-0.5 truncate">
+              <MapPin className="w-2.5 h-2.5 shrink-0" />
+              <span className="truncate">{object.region}</span>
             </p>
           </div>
         </div>
 
-        <h3 className="text-lg font-bold text-gray-900 leading-tight">{object.name}</h3>
+        <h3 className="text-base font-bold text-gray-900 leading-tight line-clamp-2">{object.name}</h3>
 
-        <div className="grid grid-cols-2 gap-3 text-sm text-slate-800">
-          <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 space-y-1">
-            <p className="text-[11px] uppercase tracking-wide text-slate-500">Область</p>
-            <p className="font-semibold">{object.region}</p>
+        <div className="space-y-2 text-xs text-gray-700">
+          <div className="flex items-center gap-2">
+            <Droplets className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+            <span className="text-[11px]">{formatWaterType}</span>
           </div>
-          <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 space-y-1">
-            <p className="text-[11px] uppercase tracking-wide text-slate-500">Тип ресурса</p>
-            <p className="font-semibold">{getResourceTypeLabel(object.resourceType)}</p>
+          <div className="flex items-center gap-2">
+            <Waves className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+            <span className="text-[11px]">Фауна: {formatFauna}</span>
           </div>
-          <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 space-y-1">
-            <p className="text-[11px] uppercase tracking-wide text-slate-500">Тип воды</p>
-            <p className="font-semibold">{formatWaterType}</p>
-          </div>
-          <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 space-y-1">
-            <p className="text-[11px] uppercase tracking-wide text-slate-500">Фауна</p>
-            <p className="font-semibold">{formatFauna}</p>
-          </div>
-          <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 space-y-1">
-            <p className="text-[11px] uppercase tracking-wide text-slate-500">Дата паспорта</p>
-            <p className="font-semibold">{object.passportDate}</p>
-          </div>
-          <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 space-y-1">
-            <p className="text-[11px] uppercase tracking-wide text-slate-500">Координаты</p>
-            <p className="font-semibold">{formatCoordinates(object.coordinates.lat, object.coordinates.lng)}</p>
+          {object.passportDate && (
+            <div className="flex items-center gap-2">
+              <Calendar className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span className="text-[11px]">{object.passportDate}</span>
+            </div>
+          )}
+          <div className="flex items-start gap-2">
+            <Navigation className="w-3.5 h-3.5 text-purple-500 shrink-0 mt-0.5" />
+            <span className="text-[10px] text-gray-600 leading-tight">{formatCoordinates(object.coordinates.lat, object.coordinates.lng)}</span>
           </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-2 pt-1">
           {canViewPassport && (
             <a
               href={object.pdfUrl || '#'}
               target="_blank"
               rel="noopener"
-              className={`flex-1 h-10 flex items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white transition-colors ${
+              className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold text-white transition-colors ${
                 object.pdfUrl ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-400 cursor-not-allowed'
               }`}
             >
-              <FileText className="w-4 h-4" />
-              Открыть PDF
+              <FileText className="w-3.5 h-3.5" />
+              PDF
             </a>
           )}
           <button
             onClick={onCompare}
-            className={`h-10 w-10 flex items-center justify-center border rounded-xl transition-colors ${
+            className={`h-9 w-9 flex items-center justify-center border rounded-lg transition-colors ${
               isInCompare
                 ? 'border-blue-500 bg-blue-50 text-blue-600'
                 : 'border-gray-200 text-gray-500 hover:bg-gray-50'
             }`}
           >
-            <GitCompare className="w-4 h-4" />
+            <GitCompare className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

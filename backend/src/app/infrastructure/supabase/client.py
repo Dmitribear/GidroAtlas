@@ -68,8 +68,14 @@ class SupabaseClient:
   ) -> None:
     await self._ensure_bucket(bucket)
     storage = self.raw.storage.from_(bucket)
-    # storage3 expects header values as strings; booleans cause httpx header encoding errors.
-    file_options = {"contentType": content_type, "upsert": "true" if upsert else "false"}
+    # Supabase may retain old content-type on upsert; remove first to refresh metadata.
+    if upsert:
+      try:
+        await asyncio.to_thread(storage.remove, [path])
+      except Exception:
+        # best-effort cleanup; keep going
+        pass
+    file_options = {"contentType": content_type, "upsert": upsert}
     await asyncio.to_thread(storage.upload, path, data, file_options)
 
   def get_public_url(self, bucket: str, path: str) -> str:
