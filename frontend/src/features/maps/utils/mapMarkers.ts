@@ -57,7 +57,6 @@ function buildPopupHtml(obj: any, hidePriority = false) {
   const typeKey = obj.resource_type ?? obj.resourceType ?? ''
   const type = resourceLabels[typeKey] || 'Ресурс'
   const conditionValueRaw = Number(obj.technical_condition ?? obj.condition ?? 0)
-  const conditionValue = hidePriority ? null : conditionValueRaw
   const conditionText = hidePriority ? 'Доступно эксперту' : conditionLabels[conditionValueRaw] || 'Нет данных'
   const pdfLink = obj.pdf_url ?? obj.pdfUrl
   const priorityRaw = obj.priority ?? ''
