@@ -1,0 +1,40 @@
+.text {
+  margin: 0;
+}
+
+.sm {
+  font-size: 13px;
+}
+
+.md {
+  font-size: 16px;
+}
+
+.lg {
+  font-size: 20px;
+}
+
+.xl {
+  font-size: 32px;
+  line-height: 1.2;
+}
+
+.regular {
+  font-weight: 400;
+}
+
+.medium {
+  font-weight: 600;
+}
+
+.bold {
+  font-weight: 700;
+}
+
+.default {
+  color: #ecf1ff;
+}
+
+.muted {
+  color: var(--muted);
+}
